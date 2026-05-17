@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: pos_ferreteria_db
+    environment:
+      POSTGRES_DB: pos_ferreteria
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pos-ferreteria_postgres_ferreteria_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/seed_base.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pos_ferreteria_api
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=db;Database=pos_ferreteria;Username=postgres;Password=postgres"
+      Jwt__Key: "FerreteriaPOS_SuperSecretKey_2024_MustBeLongEnough!"
+      Jwt__Issuer: "POS.Ferreteria"
+      Jwt__Audience: "POS.Ferreteria.App"
+      Jwt__ExpireMinutes: "480"
+    ports:
+      - "5002:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    image: nginx:alpine
+    container_name: pos_ferreteria_frontend
+    ports:
+      - "8082:80"
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - ./nginx.conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+
+volumes:
+  pos-ferreteria_postgres_ferreteria_data:
+    external: true
