@@ -192,7 +192,7 @@ def test_categories():
 
     # Crear categoría
     ok, data = api_call("POST", "/categories",
-                        {"name": f"Test Cat {int(time.time()))}", "description": "Categoría de prueba"},
+                        {"name": f"Test Cat {int(time.time())}", "description": "Categoría de prueba"},
                         expected_status=201)
     log_test("Crear categoría", ok)
     cat_id = data.get("id") if ok else None
@@ -259,7 +259,7 @@ def test_suppliers():
     log_test("Listar proveedores", ok)
 
     ok, data = api_call("POST", "/suppliers",
-                        {"name": f"Proveedor Test {int(time.time()))}",
+                        {"name": f"Proveedor Test {int(time.time())}",
                          "contactname": "Contacto Test",
                          "phone": "555-5678"},
                         expected_status=201)
