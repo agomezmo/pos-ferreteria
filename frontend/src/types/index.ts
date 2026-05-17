@@ -4,6 +4,9 @@ export interface User {
   email: string;
   fullname: string;
   role: string;
+  isactive: boolean;
+  lastlogin: string;
+  createdat: string;
 }
 
 export interface AuthResponse {
@@ -17,43 +20,52 @@ export interface Product {
   barcode: string;
   name: string;
   description: string;
-  categoryId: number;
-  categoryName: string;
-  supplierId: number;
-  supplierName: string;
-  purchasePrice: number;
-  salePrice: number;
+  categoryid: number;
+  category_name: string;
+  supplierid: number;
+  supplier_name: string;
+  purchaseprice: number;
+  saleprice: number;
   stock: number;
-  minStock: number;
+  minstock: number;
   unit: string;
-  isActive: boolean;
-  wholesalePrice: number;
-  requiresTax: boolean;
+  isactive: boolean;
+  requiresprescription: boolean;
+  wholesale_price: number;
+  expiry_date: string;
+  requires_tax: boolean;
+  createdat: string;
+  updatedat: string;
 }
 
 export interface Category {
   id: number;
   name: string;
   description: string;
-  isActive: boolean;
+  isactive: boolean;
 }
 
 export interface Customer {
   id: number;
-  documentType: string;
-  documentNumber: string;
-  fullName: string;
+  documenttype: string;
+  documentnumber: string;
+  fullname: string;
   phone: string;
   email: string;
   address: string;
   rfc: string;
-  razonSocial: string;
+  razonsocial: string;
+  codigopostal: string;
+  regimenfiscalid: number;
+  regimen_fiscal_desc: string;
+  usocfdiid: number;
+  uso_cfdi_desc: string;
 }
 
 export interface Supplier {
   id: number;
   name: string;
-  contactName: string;
+  contactname: string;
   phone: string;
   email: string;
   address: string;
@@ -61,44 +73,239 @@ export interface Supplier {
 
 export interface Sale {
   id: number;
-  receiptNumber: string;
-  userId: number;
-  userName: string;
-  customerId: number;
-  customerName: string;
+  receiptnumber: string;
+  userid: number;
+  user_name: string;
+  customerid: number;
+  customer_name: string;
   subtotal: number;
   tax: number;
   discount: number;
   total: number;
-  paymentMethod: string;
-  paymentStatus: string;
-  createdAt: string;
+  paymentmethod: string;
+  paymentstatus: string;
+  notes: string;
+  amountreceived: number;
+  change: number;
+  createdat: string;
   items: SaleItem[];
+  payments: Payment[];
 }
 
 export interface SaleItem {
   id: number;
-  saleId: number;
-  productId: number;
-  productName: string;
-  productCode: string;
+  saleid: number;
+  productid: number;
+  product_name: string;
+  product_code: string;
   quantity: number;
-  unitPrice: number;
+  unitprice: number;
   discount: number;
   subtotal: number;
 }
 
+export interface Payment {
+  id: number;
+  saleid: number;
+  amount: number;
+  paymentmethod: string;
+  reference: string;
+  createdat: string;
+}
+
 export interface CreateSaleDto {
-  customerId?: number;
+  customerid?: number;
   items: CreateSaleItemDto[];
-  paymentMethod: string;
-  amountReceived: number;
+  paymentmethod: string;
+  amountreceived: number;
   discount: number;
   notes: string;
 }
 
 export interface CreateSaleItemDto {
-  productId: number;
+  productid: number;
   quantity: number;
-  unitPrice: number;
+  unitprice: number;
+}
+
+export interface CashRegister {
+  id: number;
+  name: string;
+  isactive: boolean;
+}
+
+export interface CashRegisterSession {
+  id: number;
+  cashregisterid: number;
+  cashregister_name: string;
+  userid: number;
+  user_name: string;
+  openingbalance: number;
+  closingbalance: number;
+  openingdate: string;
+  closingdate: string;
+  status: string;
+  notes: string;
+  total_sales: number;
+  total_cash: number;
+  total_card: number;
+  total_transfer: number;
+}
+
+export interface Return {
+  id: number;
+  saleid: number;
+  receiptnumber: string;
+  userid: number;
+  user_name: string;
+  reason: string;
+  total: number;
+  createdat: string;
+  items: ReturnItem[];
+}
+
+export interface ReturnItem {
+  id: number;
+  returnid: number;
+  productid: number;
+  product_name: string;
+  quantity: number;
+  unitprice: number;
+  subtotal: number;
+}
+
+export interface Expense {
+  id: number;
+  description: string;
+  amount: number;
+  category: string;
+  paymentmethod: string;
+  reference: string;
+  notes: string;
+  userid: number;
+  user_name: string;
+  createdat: string;
+}
+
+export interface Patient {
+  id: number;
+  customerid: number;
+  customer_name: string;
+  fullname: string;
+  dateofbirth: string;
+  phone: string;
+  email: string;
+  address: string;
+  bloodtype: string;
+  allergies: string;
+  medicalnotes: string;
+  createdat: string;
+}
+
+export interface Prescription {
+  id: number;
+  patientid: number;
+  patient_name: string;
+  doctor_name: string;
+  license_number: string;
+  diagnosis: string;
+  issuedate: string;
+  expirydate: string;
+  notes: string;
+  isactive: boolean;
+  items: PrescriptionItem[];
+}
+
+export interface PrescriptionItem {
+  id: number;
+  prescriptionid: number;
+  productid: number;
+  product_name: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+  quantity: number;
+}
+
+export interface Alert {
+  id: number;
+  type: string;
+  title: string;
+  message: string;
+  severity: string;
+  isread: boolean;
+  createdat: string;
+}
+
+export interface InventoryMovement {
+  id: number;
+  productid: number;
+  product_name: string;
+  type: string;
+  quantity: number;
+  reason: string;
+  reference: string;
+  userid: number;
+  user_name: string;
+  createdat: string;
+}
+
+export interface CompanyInfo {
+  id: number;
+  name: string;
+  rfc: string;
+  address: string;
+  phone: string;
+  email: string;
+  logo_url: string;
+}
+
+export interface SystemSetting {
+  id: number;
+  key: string;
+  value: string;
+  description: string;
+}
+
+export interface Role {
+  id: number;
+  name: string;
+  description: string;
+}
+
+export interface CatRegimenFiscal {
+  id: number;
+  codigo: string;
+  descripcion: string;
+}
+
+export interface CatUsoCfdi {
+  id: number;
+  codigo: string;
+  descripcion: string;
+}
+
+export interface CatFormaPago {
+  id: number;
+  codigo: string;
+  descripcion: string;
+}
+
+export interface CatMetodoPago {
+  id: number;
+  codigo: string;
+  descripcion: string;
+}
+
+export interface Factura {
+  id: number;
+  saleid: number;
+  uuid: string;
+  serie: string;
+  folio: string;
+  rfc: string;
+  razonsocial: string;
+  total: number;
+  status: string;
+  createdat: string;
 }

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Diagrama Entidad-Relación - POS Ferretería</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; color: #333; background: #f5f5f5; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,.1); border-radius: 8px; }
+  h1 { color: #2563eb; border-bottom: 3px solid #2563eb; padding-bottom: 10px; }
+  h2 { color: #1e40af; margin-top: 30px; }
+  .mermaid { text-align: center; margin: 30px 0; }
+  .legend { background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; margin: 20px 0; }
+  .legend table { width: auto; margin: 0 auto; }
+  .legend td { padding: 5px 15px; }
+  .entity-card { background: #f0f4ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 15px; margin: 15px 0; }
+  .entity-card h3 { margin: 0 0 10px 0; color: #1e40af; }
+  .entity-card table { width: 100%; border-collapse: collapse; font-size: .9em; }
+  .entity-card th, .entity-card td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; }
+  .entity-card th { background: #dbeafe; color: #1e40af; font-weight: 600; }
+  .pk { background: #fef3c7; font-weight: bold; }
+  .fk { background: #d1fae5; font-style: italic; }
+  .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: .9em; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Diagrama Entidad-Relación</h1>
+<p><strong>Sistema POS Ferretería</strong> — Modelo de datos completo</p>
+
+<div class="mermaid">
+erDiagram
+    Companies ||--o{ Users : "pertenece a"
+    Companies ||--o{ CompanySettings : configura
+    Companies ||--o{ Facturas : emite
+
+    Users ||--o{ Sales : registra
+    Users ||--o{ CashRegisterSessions : abre
+    Users ||--o{ Expenses : registra
+    Users ||--o{ InventoryMovements : realiza
+    Users ||--o{ Returns : procesa
+    Users ||--o{ Alerts : genera
+
+    Categories ||--o{ Products : clasifica
+
+    Products ||--o{ SaleItems : incluye
+    Products ||--o{ InventoryMovements : tiene
+    Products ||--o{ ReturnItems : devuelve
+    Products ||--o{ PrescriptionItems : prescribe
+    Products ||--o{ Alerts : genera
+    Products }o--|| Suppliers : provee
+
+    Customers ||--o{ Sales : realiza
+    Customers ||--o{ Returns : solicita
+    Customers ||--o{ Facturas : recibe
+
+    Sales ||--o{ SaleItems : contiene
+    Sales ||--o{ Returns : referencia
+    Sales ||--o{ Facturas : genera
+
+    CashRegisterSessions ||--o{ Sales : agrupa
+    CashRegisterSessions ||--o{ Expenses : registra
+
+    Patients ||--o{ Prescriptions : tiene
+
+    Prescriptions ||--o{ PrescriptionItems : contiene
+
+    Returns ||--o{ ReturnItems : contiene
+</div>
+
+<h2>Descripción de Entidades</h2>
+
+<div class="entity-card">
+<h3>Companies</h3>
+<p>Información fiscal y de identidad de la empresa propietaria del sistema.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr><td>Name</td><td>VARCHAR(200)</td><td>Nombre comercial</td></tr>
+  <tr><td>BusinessName</td><td>VARCHAR(200)</td><td>Razón social</td></tr>
+  <tr><td>RFC</td><td>VARCHAR(13)</td><td>Registro Federal de Contribuyentes</td></tr>
+  <tr><td>Phone</td><td>VARCHAR(20)</td><td>Teléfono</td></tr>
+  <tr><td>Email</td><td>VARCHAR(100)</td><td>Correo electrónico</td></tr>
+  <tr><td>Address</td><td>TEXT</td><td>Dirección fiscal</td></tr>
+  <tr><td>LogoUrl</td><td>VARCHAR(500)</td><td>URL del logo</td></tr>
+  <tr><td>TaxRegime</td><td>VARCHAR(50)</td><td>Régimen fiscal SAT</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha de creación</td></tr>
+  <tr><td>UpdatedAt</td><td>TIMESTAMP</td><td>Última modificación</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>Users</h3>
+<p>Usuarios del sistema con roles y permisos.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr><td>Username</td><td>VARCHAR(50)</td><td>Nombre de usuario (único)</td></tr>
+  <tr><td>PasswordHash</td><td>VARCHAR(200)</td><td>Hash bcrypt de la contraseña</td></tr>
+  <tr><td>FullName</td><td>VARCHAR(100)</td><td>Nombre completo</td></tr>
+  <tr><td>Email</td><td>VARCHAR(100)</td><td>Correo electrónico</td></tr>
+  <tr><td>Role</td><td>VARCHAR(20)</td><td>Admin | Cajero | Almacen | Consultor</td></tr>
+  <tr><td>IsActive</td><td>BOOLEAN</td><td>Estado del usuario</td></tr>
+  <tr class="fk"><td>CompanyId</td><td>INTEGER (FK)</td><td>→ Companies.Id</td></tr>
+  <tr><td>LastLoginAt</td><td>TIMESTAMP</td><td>Último inicio de sesión</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha de creación</td></tr>
+  <tr><td>UpdatedAt</td><td>TIMESTAMP</td><td>Última modificación</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>Categories</h3>
+<p>Clasificación de productos.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr><td>Name</td><td>VARCHAR(100)</td><td>Nombre de la categoría</td></tr>
+  <tr><td>Description</td><td>TEXT</td><td>Descripción</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha de creación</td></tr>
+  <tr><td>UpdatedAt</td><td>TIMESTAMP</td><td>Última modificación</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>Products</h3>
+<p>Catálogo de productos con control de inventario, precios y caducidad.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr><td>Code</td><td>VARCHAR(50)</td><td>Código único (barras/interno)</td></tr>
+  <tr><td>Name</td><td>VARCHAR(200)</td><td>Nombre del producto</td></tr>
+  <tr><td>Description</td><td>TEXT</td><td>Descripción detallada</td></tr>
+  <tr class="fk"><td>CategoryId</td><td>INTEGER (FK)</td><td>→ Categories.Id</td></tr>
+  <tr class="fk"><td>SupplierId</td><td>INTEGER (FK)</td><td>→ Suppliers.Id (nullable)</td></tr>
+  <tr><td>PurchasePrice</td><td>DECIMAL(10,2)</td><td>Precio de compra</td></tr>
+  <tr><td>SalePrice</td><td>DECIMAL(10,2)</td><td>Precio de venta</td></tr>
+  <tr><td>Stock</td><td>INTEGER</td><td>Cantidad actual</td></tr>
+  <tr><td>MinStock</td><td>INTEGER</td><td>Stock mínimo para alerta</td></tr>
+  <tr><td>Unit</td><td>VARCHAR(20)</td><td>Unidad de medida</td></tr>
+  <tr><td>Batch</td><td>VARCHAR(50)</td><td>Número de lote (nullable)</td></tr>
+  <tr><td>ExpirationDate</td><td>DATE</td><td>Fecha de vencimiento (nullable)</td></tr>
+  <tr><td>RequiresPrescription</td><td>BOOLEAN</td><td>Requiere receta médica</td></tr>
+  <tr><td>IsActive</td><td>BOOLEAN</td><td>Activo en catálogo</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha de creación</td></tr>
+  <tr><td>UpdatedAt</td><td>TIMESTAMP</td><td>Última modificación</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>Suppliers</h3>
+<p>Proveedores de productos.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr><td>Name</td><td>VARCHAR(200)</td><td>Nombre del proveedor</td></tr>
+  <tr><td>ContactName</td><td>VARCHAR(100)</td><td>Persona de contacto</td></tr>
+  <tr><td>Phone</td><td>VARCHAR(20)</td><td>Teléfono</td></tr>
+  <tr><td>Email</td><td>VARCHAR(100)</td><td>Correo electrónico</td></tr>
+  <tr><td>Address</td><td>TEXT</td><td>Dirección</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha de creación</td></tr>
+  <tr><td>UpdatedAt</td><td>TIMESTAMP</td><td>Última modificación</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>Customers</h3>
+<p>Base de datos de clientes.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr><td>DocumentType</td><td>VARCHAR(20)</td><td>INE, CURP, RFC, Pasaporte</td></tr>
+  <tr><td>DocumentNumber</td><td>VARCHAR(30)</td><td>Número de identificación</td></tr>
+  <tr><td>FullName</td><td>VARCHAR(200)</td><td>Nombre completo</td></tr>
+  <tr><td>Phone</td><td>VARCHAR(20)</td><td>Teléfono</td></tr>
+  <tr><td>Email</td><td>VARCHAR(100)</td><td>Correo electrónico</td></tr>
+  <tr><td>Address</td><td>TEXT</td><td>Dirección</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha de registro</td></tr>
+  <tr><td>UpdatedAt</td><td>TIMESTAMP</td><td>Última modificación</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>Sales</h3>
+<p>Cabecera de ventas realizadas.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr><td>ReceiptNumber</td><td>VARCHAR(20)</td><td>Número de folio único</td></tr>
+  <tr><td>SaleDate</td><td>TIMESTAMP</td><td>Fecha y hora de la venta</td></tr>
+  <tr class="fk"><td>CustomerId</td><td>INTEGER (FK)</td><td>→ Customers.Id (nullable)</td></tr>
+  <tr class="fk"><td>UserId</td><td>INTEGER (FK)</td><td>→ Users.Id (cajero)</td></tr>
+  <tr class="fk"><td>CashRegisterSessionId</td><td>INTEGER (FK)</td><td>→ CashRegisterSessions.Id</td></tr>
+  <tr><td>Subtotal</td><td>DECIMAL(10,2)</td><td>Subtotal antes de impuestos</td></tr>
+  <tr><td>Discount</td><td>DECIMAL(10,2)</td><td>Descuento aplicado</td></tr>
+  <tr><td>Tax</td><td>DECIMAL(10,2)</td><td>IVA</td></tr>
+  <tr><td>Total</td><td>DECIMAL(10,2)</td><td>Total final</td></tr>
+  <tr><td>PaymentMethod</td><td>VARCHAR(20)</td><td>Efectivo | Tarjeta | Transferencia | Crédito</td></tr>
+  <tr><td>AmountReceived</td><td>DECIMAL(10,2)</td><td>Monto recibido</td></tr>
+  <tr><td>Change</td><td>DECIMAL(10,2)</td><td>Cambio devuelto</td></tr>
+  <tr><td>Status</td><td>VARCHAR(20)</td><td>Completada | Cancelada</td></tr>
+  <tr><td>Notes</td><td>TEXT</td><td>Notas adicionales</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha de creación</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>SaleItems</h3>
+<p>Detalle de cada producto en una venta.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr class="fk"><td>SaleId</td><td>INTEGER (FK)</td><td>→ Sales.Id</td></tr>
+  <tr class="fk"><td>ProductId</td><td>INTEGER (FK)</td><td>→ Products.Id</td></tr>
+  <tr><td>Quantity</td><td>INTEGER</td><td>Cantidad vendida</td></tr>
+  <tr><td>UnitPrice</td><td>DECIMAL(10,2)</td><td>Precio unitario</td></tr>
+  <tr><td>Subtotal</td><td>DECIMAL(10,2)</td><td>Subtotal del renglón</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>CashRegisterSessions</h3>
+<p>Control de apertura y cierre de caja por turno/usuario.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr class="fk"><td>UserId</td><td>INTEGER (FK)</td><td>→ Users.Id</td></tr>
+  <tr><td>OpeningBalance</td><td>DECIMAL(10,2)</td><td>Monto inicial</td></tr>
+  <tr><td>ClosingBalance</td><td>DECIMAL(10,2)</td><td>Monto final (nullable)</td></tr>
+  <tr><td>ExpectedBalance</td><td>DECIMAL(10,2)</td><td>Monto esperado (nullable)</td></tr>
+  <tr><td>Difference</td><td>DECIMAL(10,2)</td><td>Diferencia (nullable)</td></tr>
+  <tr><td>OpenedAt</td><td>TIMESTAMP</td><td>Fecha de apertura</td></tr>
+  <tr><td>ClosedAt</td><td>TIMESTAMP</td><td>Fecha de cierre (nullable)</td></tr>
+  <tr><td>Status</td><td>VARCHAR(15)</td><td>Abierta | Cerrada</td></tr>
+  <tr><td>Notes</td><td>TEXT</td><td>Notas del corte</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>Expenses</h3>
+<p>Registro de gastos operativos de la farmacia.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr><td>Description</td><td>TEXT</td><td>Descripción del gasto</td></tr>
+  <tr><td>Amount</td><td>DECIMAL(10,2)</td><td>Monto</td></tr>
+  <tr><td>Category</td><td>VARCHAR(50)</td><td>Servicios | Renta | Sueldos | Impuestos | Publicidad | Otros</td></tr>
+  <tr><td>PaymentMethod</td><td>VARCHAR(20)</td><td>Efectivo | Tarjeta | Transferencia</td></tr>
+  <tr><td>ExpenseDate</td><td>TIMESTAMP</td><td>Fecha del gasto</td></tr>
+  <tr class="fk"><td>UserId</td><td>INTEGER (FK)</td><td>→ Users.Id (registró)</td></tr>
+  <tr class="fk"><td>CashRegisterSessionId</td><td>INTEGER (FK)</td><td>→ CashRegisterSessions.Id (nullable)</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha de creación</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>Returns</h3>
+<p>Cabecera de devoluciones.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr class="fk"><td>SaleId</td><td>INTEGER (FK)</td><td>→ Sales.Id</td></tr>
+  <tr class="fk"><td>CustomerId</td><td>INTEGER (FK)</td><td>→ Customers.Id (nullable)</td></tr>
+  <tr class="fk"><td>UserId</td><td>INTEGER (FK)</td><td>→ Users.Id (procesó)</td></tr>
+  <tr><td>ReturnDate</td><td>TIMESTAMP</td><td>Fecha de devolución</td></tr>
+  <tr><td>Reason</td><td>TEXT</td><td>Motivo de la devolución</td></tr>
+  <tr><td>Total</td><td>DECIMAL(10,2)</td><td>Monto total devuelto</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha de creación</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>ReturnItems</h3>
+<p>Productos devueltos en cada devolución.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr class="fk"><td>ReturnId</td><td>INTEGER (FK)</td><td>→ Returns.Id</td></tr>
+  <tr class="fk"><td>ProductId</td><td>INTEGER (FK)</td><td>→ Products.Id</td></tr>
+  <tr><td>Quantity</td><td>INTEGER</td><td>Cantidad devuelta</td></tr>
+  <tr><td>UnitPrice</td><td>DECIMAL(10,2)</td><td>Precio unitario al momento de la venta</td></tr>
+  <tr><td>Subtotal</td><td>DECIMAL(10,2)</td><td>Subtotal del renglón</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>Patients</h3>
+<p>Base de datos de pacientes (para control de recetas).</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr><td>FullName</td><td>VARCHAR(200)</td><td>Nombre completo</td></tr>
+  <tr><td>DateOfBirth</td><td>DATE</td><td>Fecha de nacimiento</td></tr>
+  <tr><td>Phone</td><td>VARCHAR(20)</td><td>Teléfono</td></tr>
+  <tr><td>Email</td><td>VARCHAR(100)</td><td>Correo electrónico</td></tr>
+  <tr><td>BloodType</td><td>VARCHAR(5)</td><td>Tipo de sangre</td></tr>
+  <tr><td>Allergies</td><td>TEXT</td><td>Alergias conocidas</td></tr>
+  <tr><td>Notes</td><td>TEXT</td><td>Observaciones</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha de registro</td></tr>
+  <tr><td>UpdatedAt</td><td>TIMESTAMP</td><td>Última modificación</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>Prescriptions</h3>
+<p>Recetas médicas emitidas para pacientes.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr class="fk"><td>PatientId</td><td>INTEGER (FK)</td><td>→ Patients.Id</td></tr>
+  <tr><td>DoctorName</td><td>VARCHAR(200)</td><td>Nombre del médico</td></tr>
+  <tr><td>DoctorLicense</td><td>VARCHAR(30)</td><td>Cédula profesional</td></tr>
+  <tr><td>IssueDate</td><td>DATE</td><td>Fecha de emisión</td></tr>
+  <tr><td>ExpirationDate</td><td>DATE</td><td>Fecha de vencimiento</td></tr>
+  <tr><td>Status</td><td>VARCHAR(15)</td><td>Activa | Usada | Vencida</td></tr>
+  <tr><td>Notes</td><td>TEXT</td><td>Notas adicionales</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha de creación</td></tr>
+  <tr><td>UpdatedAt</td><td>TIMESTAMP</td><td>Última modificación</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>PrescriptionItems</h3>
+<p>Medicamentos recetados en cada receta.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr class="fk"><td>PrescriptionId</td><td>INTEGER (FK)</td><td>→ Prescriptions.Id</td></tr>
+  <tr class="fk"><td>ProductId</td><td>INTEGER (FK)</td><td>→ Products.Id</td></tr>
+  <tr><td>Dosage</td><td>VARCHAR(100)</td><td>Dosis recetada</td></tr>
+  <tr><td>Frequency</td><td>VARCHAR(100)</td><td>Frecuencia (cada 8 hrs, etc.)</td></tr>
+  <tr><td>Duration</td><td>VARCHAR(50)</td><td>Duración del tratamiento (7 días, etc.)</td></tr>
+  <tr><td>Instructions</td><td>TEXT</td><td>Instrucciones adicionales</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>InventoryMovements</h3>
+<p>Bitácora de todos los movimientos de inventario (entradas y salidas).</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr class="fk"><td>ProductId</td><td>INTEGER (FK)</td><td>→ Products.Id</td></tr>
+  <tr><td>Type</td><td>VARCHAR(10)</td><td>in (entrada) | out (salida)</td></tr>
+  <tr><td>Quantity</td><td>INTEGER</td><td>Cantidad del movimiento</td></tr>
+  <tr><td>PreviousStock</td><td>INTEGER</td><td>Stock antes del movimiento</td></tr>
+  <tr><td>NewStock</td><td>INTEGER</td><td>Stock después del movimiento</td></tr>
+  <tr><td>Reason</td><td>VARCHAR(50)</td><td>Compra | Venta | Ajuste | Merma | Devolución</td></tr>
+  <tr><td>Reference</td><td>VARCHAR(100)</td><td>Referencia (folio de venta, etc.) nullable</td></tr>
+  <tr class="fk"><td>UserId</td><td>INTEGER (FK)</td><td>→ Users.Id</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha del movimiento</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>Alerts</h3>
+<p>Alertas automáticas del sistema.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr><td>Type</td><td>VARCHAR(30)</td><td>LowStock | ExpiringProduct | ExpiringPrescription</td></tr>
+  <tr><td>Title</td><td>VARCHAR(200)</td><td>Título de la alerta</td></tr>
+  <tr><td>Message</td><td>TEXT</td><td>Mensaje descriptivo</td></tr>
+  <tr class="fk"><td>UserId</td><td>INTEGER (FK)</td><td>→ Users.Id (destinatario, nullable)</td></tr>
+  <tr><td>IsRead</td><td>BOOLEAN</td><td>Leída o no</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha de generación</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>Facturas</h3>
+<p>Facturación electrónica CFDI.</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr class="fk"><td>SaleId</td><td>INTEGER (FK)</td><td>→ Sales.Id</td></tr>
+  <tr class="fk"><td>CustomerId</td><td>INTEGER (FK)</td><td>→ Customers.Id</td></tr>
+  <tr class="fk"><td>CompanyId</td><td>INTEGER (FK)</td><td>→ Companies.Id</td></tr>
+  <tr><td>UUID</td><td>VARCHAR(36)</td><td>Folio fiscal CFDI (SAT)</td></tr>
+  <tr><td>Series</td><td>VARCHAR(10)</td><td>Serie del folio</td></tr>
+  <tr><td>Folio</td><td>INTEGER</td><td>Número de folio fiscal</td></tr>
+  <tr><td>RFCEmisor</td><td>VARCHAR(13)</td><td>RFC del emisor</td></tr>
+  <tr><td>RFCReceptor</td><td>VARCHAR(13)</td><td>RFC del receptor</td></tr>
+  <tr><td>CFDIUse</td><td>VARCHAR(5)</td><td>Uso de CFDI (G01, D01, etc.)</td></tr>
+  <tr><td>PaymentForm</td><td>VARCHAR(5)</td><td>Forma de pago SAT</td></tr>
+  <tr><td>Subtotal</td><td>DECIMAL(10,2)</td><td>Subtotal de la factura</td></tr>
+  <tr><td>IVA</td><td>DECIMAL(10,2)</td><td>IVA</td></tr>
+  <tr><td>Total</td><td>DECIMAL(10,2)</td><td>Total de la factura</td></tr>
+  <tr><td>XMLContent</td><td>TEXT</td><td>XML del CFDI (nullable)</td></tr>
+  <tr><td>Status</td><td>VARCHAR(15)</td><td>Pendiente | Timbreado | Cancelado</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha de creación</td></tr>
+</table>
+</div>
+
+<div class="entity-card">
+<h3>CompanySettings</h3>
+<p>Configuraciones generales del sistema (pares clave-valor).</p>
+<table>
+  <tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr>
+  <tr class="pk"><td>Id</td><td>INTEGER (PK)</td><td>Identificador único</td></tr>
+  <tr class="fk"><td>CompanyId</td><td>INTEGER (FK)</td><td>→ Companies.Id</td></tr>
+  <tr><td>Key</td><td>VARCHAR(100)</td><td>Nombre de la configuración</td></tr>
+  <tr><td>Value</td><td>TEXT</td><td>Valor de la configuración</td></tr>
+  <tr><td>CreatedAt</td><td>TIMESTAMP</td><td>Fecha de creación</td></tr>
+  <tr><td>UpdatedAt</td><td>TIMESTAMP</td><td>Última modificación</td></tr>
+</table>
+</div>
+
+<h2>Relaciones Clave</h2>
+<ul>
+  <li><strong>Ventas → Productos:</strong> Una venta (Sales) contiene uno o muchos productos a través de SaleItems (relación N:M con datos extra).</li>
+  <li><strong>Caja → Ventas/Gastos:</strong> Cada sesión de caja (CashRegisterSessions) agrupa las ventas y gastos realizados durante un turno.</li>
+  <li><strong>Productos → Inventario:</strong> Cada movimiento de inventario (InventoryMovements) registra cambios en el stock de un producto.</li>
+  <li><strong>Recetas → Pacientes:</strong> Un paciente puede tener múltiples recetas a lo largo del tiempo.</li>
+  <li><strong>Devoluciones → Ventas:</strong> Una devolución está vinculada a una venta original y revierte el inventario de los productos devueltos.</li>
+  <li><strong>Facturas → Ventas:</strong> Una venta puede generar una o más facturas (según el esquema de facturación).</li>
+</ul>
+
+<div class="footer">
+<p>POS Ferretería v1.0 — Diagrama Entidad-Relación — 17 de mayo de 2026</p>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true,theme:'neutral'});</script>
+</body>
+</html>

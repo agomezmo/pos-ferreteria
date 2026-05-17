@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Manual de Usuario - POS Ferretería</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; color: #333; background: #f5f5f5; }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,.1); }
+  h1 { color: #2563eb; border-bottom: 3px solid #2563eb; padding-bottom: 10px; }
+  h2 { color: #1e40af; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+  h3 { color: #374151; }
+  .toc { background: #f0f4ff; padding: 15px 20px; border-radius: 8px; margin: 20px 0; }
+  .toc ul { margin: 5px 0; padding-left: 20px; }
+  .toc a { color: #2563eb; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .note { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 10px 15px; margin: 15px 0; border-radius: 4px; }
+  .info { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 10px 15px; margin: 15px 0; border-radius: 4px; }
+  .warning { background: #fee2e2; border-left: 4px solid #ef4444; padding: 10px 15px; margin: 15px 0; border-radius: 4px; }
+  table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+  th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+  th { background: #2563eb; color: #fff; }
+  tr:nth-child(even) { background: #f9fafb; }
+  kbd { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 3px; padding: 2px 6px; font-size: .9em; }
+  .shortcut { display: inline-block; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 3px; padding: 3px 8px; font-family: monospace; font-size: .85em; }
+  img { max-width: 100%; border: 1px solid #ddd; border-radius: 8px; margin: 15px 0; }
+  .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: .9em; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Manual de Usuario</h1>
+<p><strong>Sistema POS Ferretería</strong> — Versión 1.0</p>
+
+<div class="toc">
+<h3>Contenido</h3>
+<ul>
+  <li><a href="#intro">1. Introducción</a></li>
+  <li><a href="#acceso">2. Acceso al Sistema</a></li>
+  <li><a href="#dashboard">3. Panel Principal (Dashboard)</a></li>
+  <li><a href="#sales">4. Módulo de Ventas (POS)</a></li>
+  <li><a href="#products">5. Módulo de Productos</a></li>
+  <li><a href="#categories">6. Categorías</a></li>
+  <li><a href="#customers">7. Clientes</a></li>
+  <li><a href="#suppliers">8. Proveedores</a></li>
+  <li><a href="#inventory">9. Inventario</a></li>
+  <li><a href="#cash">10. Caja</a></li>
+  <li><a href="#reports">11. Reportes</a></li>
+  <li><a href="#returns">12. Devoluciones</a></li>
+  <li><a href="#expenses">13. Gastos</a></li>
+  <li><a href="#patients">14. Pacientes</a></li>
+  <li><a href="#prescriptions">15. Recetas Médicas</a></li>
+  <li><a href="#alerts">16. Alertas</a></li>
+  <li><a href="#company">17. Empresa</a></li>
+  <li><a href="#users">18. Usuarios</a></li>
+  <li><a href="#facturas">19. Facturación CFDI</a></li>
+  <li><a href="#shortcuts">20. Atajos de Teclado</a></li>
+</ul>
+</div>
+
+<h2 id="intro">1. Introducción</h2>
+<p>POS Ferretería es un sistema de punto de venta diseñado específicamente para ferreterías. Permite gestionar ventas, inventario, clientes, proveedores, pacientes, recetas médicas, caja y facturación electrónica (CFDI).</p>
+
+<p>El sistema está compuesto por una interfaz web moderna accesible desde cualquier navegador en la red local, una API REST en .NET y una base de datos PostgreSQL.</p>
+
+<div class="info">
+<strong>Acceso:</strong> Abre tu navegador y ve a <code>http://localhost:8082</code> (o la IP del servidor).
+</div>
+
+<h2 id="acceso">2. Acceso al Sistema</h2>
+<h3>Pantalla de Login</h3>
+<p>Al ingresar al sistema verás la pantalla de inicio de sesión:</p>
+<ul>
+  <li><strong>Usuario:</strong> Tu nombre de usuario asignado por el administrador.</li>
+  <li><strong>Contraseña:</strong> La contraseña correspondiente.</li>
+  <li>Presiona <strong>Ingresar</strong> o <kbd>Enter</kbd> para acceder.</li>
+</ul>
+<p>Credenciales por defecto del primer inicio:</p>
+<table>
+  <tr><th>Rol</th><th>Usuario</th><th>Contraseña</th></tr>
+  <tr><td>Administrador</td><td>admin</td><td>admin123</td></tr>
+  <tr><td>Cajero</td><td>cajero</td><td>cajero123</td></tr>
+</table>
+
+<h3>Roles de Usuario</h3>
+<table>
+  <tr><th>Rol</th><th>Permisos</th></tr>
+  <tr><td>Administrador</td><td>Acceso completo a todos los módulos del sistema</td></tr>
+  <tr><td>Cajero</td><td>Ventas, consulta de productos, cierre de caja</td></tr>
+  <tr><td>Almacén</td><td>Productos, inventario, proveedores</td></tr>
+  <tr><td>Consultor</td><td>Solo consultas y reportes (sin modificar datos)</td></tr>
+</table>
+
+<h2 id="dashboard">3. Panel Principal (Dashboard)</h2>
+<p>El dashboard muestra un resumen ejecutivo del negocio:</p>
+<ul>
+  <li><strong>Ventas del día:</strong> Total de ventas del día actual.</li>
+  <li><strong>Productos registrados:</strong> Total de productos en el catálogo.</li>
+  <li><strong>Clientes registrados:</strong> Total de clientes en la base de datos.</li>
+  <li><strong>Alertas activas:</strong> Número de alertas pendientes (stock bajo, vencimientos, recetas expiradas).</li>
+  <li><strong>Acceso rápido:</strong> Botones para ir directamente a las funciones más usadas.</li>
+  <li><strong>Alertas recientes:</strong> Lista de las últimas alertas generadas.</li>
+</ul>
+
+<h2 id="sales">4. Módulo de Ventas (POS)</h2>
+<h3>Pantalla de Nueva Venta</h3>
+<p>El módulo de ventas es el corazón del sistema. Interfaz tipo POS con:</p>
+<ul>
+  <li><strong>Buscador de productos:</strong> Escribe el nombre o código del producto para agregarlo.</li>
+  <li><strong>Carrito de compras:</strong> Lista de productos agregados con cantidad, precio y subtotal.</li>
+  <li><strong>Totalización automática:</strong> Subtotal, descuento, IVA y total se calculan en tiempo real.</li>
+  <li><strong>Selección de cliente:</strong> Opcional — buscar cliente por nombre o teléfono.</li>
+  <li><strong>Método de pago:</strong> Efectivo, Tarjeta, Transferencia, Crédito.</li>
+  <li><strong>Monto recibido y cambio:</strong> Al seleccionar "Efectivo", ingresa el monto y el sistema calcula el cambio.</li>
+  <li><strong>Finalizar venta:</strong> Botón para completar la transacción.</li>
+</ul>
+
+<h3>Proceso de Venta</h3>
+<ol>
+  <li>Busca productos por nombre o código en el campo de búsqueda.</li>
+  <li>Selecciona el producto deseado — se agrega automáticamente al carrito.</li>
+  <li>Ajusta la cantidad si es necesario con los botones +/-</li>
+  <li>Opcionalmente selecciona un cliente y aplica descuento.</li>
+  <li>Selecciona el método de pago.</li>
+  <li>Si es efectivo, ingresa el monto recibido.</li>
+  <li>Presiona <strong>Cobrar</strong> para finalizar la venta.</li>
+  <li>El sistema genera un comprobante con número de folio único.</li>
+</ol>
+
+<h3>Historial de Ventas</h3>
+<p>Muestra todas las ventas realizadas con opciones para:</p>
+<ul>
+  <li>Filtrar por fecha (rango de fechas).</li>
+  <li>Buscar por folio o nombre de cliente.</li>
+  <li>Ver detalle completo de cada venta (productos, totales, método de pago).</li>
+  <li>Generar factura desde una venta existente.</li>
+</ul>
+
+<h2 id="products">5. Módulo de Productos</h2>
+<h3>Gestión de Productos</h3>
+<p>Catálogo completo de productos con:</p>
+<ul>
+  <li><strong>Código:</strong> Código único de producto (código de barras o interno).</li>
+  <li><strong>Nombre:</strong> Nombre del producto.</li>
+  <li><strong>Descripción:</strong> Descripción detallada.</li>
+  <li><strong>Categoría:</strong> Clasificación del producto.</li>
+  <li><strong>Precios:</strong> Precio de compra y precio de venta.</li>
+  <li><strong>Stock:</strong> Cantidad actual en inventario y stock mínimo.</li>
+  <li><strong>Unidad:</strong> Unidad de medida (pza, caja, blíster, etc.).</li>
+  <li><strong>Receta:</strong> Indicador si requiere receta médica.</li>
+  <li><strong>IVA:</strong> Si el producto está sujeto a impuesto.</li>
+  <li><strong>Proveedor:</strong> Proveedor asociado.</li>
+  <li><strong>Lote y Fecha de vencimiento:</strong> Control de lotes y caducidad.</li>
+  <li><strong>Activo/Inactivo:</strong> Estado del producto en el catálogo.</li>
+</ul>
+
+<h3>Acciones</h3>
+<ul>
+  <li><strong>Agregar producto:</strong> Formulario completo para nuevo producto.</li>
+  <li><strong>Editar:</strong> Modificar datos del producto.</li>
+  <li><strong>Activar/Desactivar:</strong> Cambiar el estado del producto (sin eliminarlo).</li>
+  <li><strong>Buscar:</strong> Filtro por nombre, código o categoría.</li>
+  <li><strong>Stock bajo:</strong> Ver productos por debajo del stock mínimo.</li>
+  <li><strong>Por vencer:</strong> Ver productos próximos a caducar.</li>
+</ul>
+
+<h2 id="categories">6. Categorías</h2>
+<p>Administra las categorías de productos:</p>
+<ul>
+  <li>Lista de categorías con nombre y descripción.</li>
+  <li>Crear, editar y eliminar categorías.</li>
+  <li>Las categorías ayudan a organizar los productos (Analgésicos, Antibióticos, Vitaminas, Cuidado Personal, etc.).</li>
+</ul>
+
+<h2 id="customers">7. Clientes</h2>
+<p>Gestión de la base de clientes:</p>
+<ul>
+  <li><strong>Registro:</strong> Tipo y número de identificación, nombre completo, teléfono, email, dirección.</li>
+  <li><strong>Buscar:</strong> Por nombre, teléfono o documento.</li>
+  <li><strong>Editar:</strong> Actualizar información del cliente.</li>
+  <li><strong>Historial:</strong> Ver compras realizadas por el cliente (desde detalle de cliente).</li>
+</ul>
+
+<h2 id="suppliers">8. Proveedores</h2>
+<p>Administra los proveedores:</p>
+<ul>
+  <li>Nombre del proveedor, persona de contacto, teléfono, email, dirección.</li>
+  <li>Crear, editar y buscar proveedores.</li>
+  <li>Asociar productos a proveedores.</li>
+</ul>
+
+<h2 id="inventory">9. Inventario</h2>
+<h3>Movimientos de Inventario</h3>
+<p>Control de entradas y salidas de productos:</p>
+<ul>
+  <li><strong>Entrada:</strong> Registrar ingreso de mercancía (compra, ajuste, devolución de cliente).</li>
+  <li><strong>Salida:</strong> Registrar salida de mercancía (venta, ajuste, merma, devolución a proveedor).</li>
+  <li><strong>Historial:</strong> Bitácora completa de todos los movimientos con fecha, usuario, tipo y motivo.</li>
+  <li><strong>Stock actual:</strong> Vista del nivel de inventario de cada producto.</li>
+</ul>
+
+<h2 id="cash">10. Caja</h2>
+<h3>Sesión de Caja</h3>
+<p>Control de apertura y cierre de caja:</p>
+<ul>
+  <li><strong>Abrir caja:</strong> Registrar monto inicial al comenzar el turno.</li>
+  <li><strong>Cerrar caja:</strong> El sistema calcula el saldo esperado vs. el real.</li>
+  <li><strong>Historial de sesiones:</strong> Registro de aperturas y cierres anteriores.</li>
+  <li>No se pueden realizar ventas sin una sesión de caja abierta.</li>
+</ul>
+
+<h3>Corte de Caja</h3>
+<p>Al cerrar la sesión, el sistema muestra:</p>
+<ul>
+  <li>Monto inicial.</li>
+  <li>Total de ventas realizadas.</li>
+  <li>Total de gastos registrados.</li>
+  <li>Saldo esperado en caja.</li>
+  <li>Monto real en caja (ingresado por el usuario).</li>
+  <li>Diferencia (sobrante o faltante).</li>
+</ul>
+
+<h2 id="reports">11. Reportes</h2>
+<p>Sección de análisis con múltiples vistas:</p>
+
+<h3>Resumen Diario</h3>
+<ul>
+  <li>Ventas del día: total, cantidad de transacciones, ticket promedio.</li>
+  <li>Productos más vendidos del día.</li>
+  <li>Métodos de pago utilizados.</li>
+  <li>Gráfico de barras con ventas de los últimos 7 días.</li>
+</ul>
+
+<h3>Productos</h3>
+<ul>
+  <li>Productos más vendidos (por período).</li>
+  <li>Productos con mayor margen de ganancia.</li>
+</ul>
+
+<h3>Inventario</h3>
+<ul>
+  <li>Valor total del inventario.</li>
+  <li>Productos con stock bajo.</li>
+  <li>Productos por vencer.</li>
+</ul>
+
+<h3>Gastos</h3>
+<ul>
+  <li>Gastos por período.</li>
+  <li>Gastos por categoría.</li>
+</ul>
+
+<h2 id="returns">12. Devoluciones</h2>
+<p>Gestión de devoluciones de productos:</p>
+<ul>
+  <li>Buscar venta por folio para realizar devolución.</li>
+  <li>Seleccionar producto(s) a devolver.</li>
+  <li>Indicar motivo de la devolución.</li>
+  <li>El sistema revierte el inventario automáticamente.</li>
+  <li>Historial de devoluciones realizadas.</li>
+</ul>
+
+<h2 id="expenses">13. Gastos</h2>
+<p>Registro de gastos operativos:</p>
+<ul>
+  <li>Descripción, monto, categoría, método de pago, fecha.</li>
+  <li>Categorías: Servicios, Renta, Sueldos, Impuestos, Publicidad, Otros.</li>
+  <li>Crear, editar y eliminar gastos.</li>
+  <li>Los gastos se reflejan en el corte de caja.</li>
+</ul>
+
+<h2 id="patients">14. Pacientes</h2>
+<p>Base de datos de pacientes (para ferreterías que manejan recetas):</p>
+<ul>
+  <li>Nombre completo, fecha de nacimiento, edad, teléfono, email.</li>
+  <li>Tipo de sangre, alergias, observaciones.</li>
+  <li>Crear, editar y buscar pacientes.</li>
+  <li>Ver recetas asociadas al paciente.</li>
+</ul>
+
+<h2 id="prescriptions">15. Recetas Médicas</h2>
+<p>Control de recetas:</p>
+<ul>
+  <li>Registro de receta con datos del médico (nombre, cédula profesional).</li>
+  <li>Asociación a un paciente.</li>
+  <li>Lista de medicamentos prescritos con dosis e indicaciones.</li>
+  <li>Fecha de emisión y fecha de vencimiento de la receta.</li>
+  <li>Estado: Activa, Usada, Vencida.</li>
+  <li>Alertas cuando una receta está próxima a vencer.</li>
+</ul>
+
+<h2 id="alerts">16. Alertas</h2>
+<p>Panel de notificaciones automáticas:</p>
+<ul>
+  <li><strong>Stock bajo:</strong> Productos por debajo del mínimo configurado.</li>
+  <li><strong>Productos por vencer:</strong> Próximos a caducar (30 días).</li>
+  <li><strong>Recetas por vencer:</strong> Recetas próximas a expirar.</li>
+  <li>Marcar como leída (individual o todas).</li>
+  <li>Las alertas se generan automáticamente al iniciar sesión.</li>
+</ul>
+
+<h2 id="company">17. Empresa</h2>
+<p>Configuración de la empresa:</p>
+<ul>
+  <li>Nombre, RFC, teléfono, email, dirección.</li>
+  <li>Logo de la empresa.</li>
+  <li>Régimen fiscal.</li>
+  <li>Esta información se usa en facturas y reportes.</li>
+</ul>
+
+<h2 id="users">18. Usuarios</h2>
+<p>Administración de usuarios del sistema (solo administradores):</p>
+<ul>
+  <li>Nombre de usuario, nombre completo, email, rol.</li>
+  <li>Roles: Administrador, Cajero, Almacén, Consultor.</li>
+  <li>Crear, editar, activar/desactivar usuarios.</li>
+  <li>Restablecer contraseña.</li>
+  <li>Cada usuario tiene su propia sesión y registro de actividad.</li>
+</ul>
+
+<h2 id="facturas">19. Facturación CFDI</h2>
+<p>Módulo de facturación electrónica:</p>
+<ul>
+  <li>Generar factura (CFDI) a partir de una venta.</li>
+  <li>Datos del cliente para factura (RFC, razón social, domicilio fiscal).</li>
+  <li>Uso de CFDI (G01 - Adquisición de mercancías, etc.).</li>
+  <li>Forma de pago, método de pago.</li>
+  <li>Historial de facturas emitidas.</li>
+  <li>Vista previa y descarga (PDF/XML).</li>
+</ul>
+
+<div class="warning">
+<strong>Importante:</strong> Para la emisión real de CFDI se requiere configurar el certificado digital (CSD) y la clave privada en el módulo de Empresa, así como tener conexión con el SAT.
+</div>
+
+<h2 id="shortcuts">20. Atajos de Teclado</h2>
+<table>
+  <tr><th>Atajo</th><th>Acción</th></tr>
+  <tr><td><kbd>F1</kbd></td><td>Ir a Dashboard</td></tr>
+  <tr><td><kbd>F2</kbd></td><td>Nueva venta (POS)</td></tr>
+  <tr><td><kbd>F3</kbd></td><td>Buscar productos</td></tr>
+  <tr><td><kbd>F4</kbd></td><td>Buscar clientes</td></tr>
+  <tr><td><kbd>F5</kbd></td><td>Actualizar vista actual</td></tr>
+  <tr><td><kbd>Esc</kbd></td><td>Cerrar modal / Cancelar</td></tr>
+  <tr><td><kbd>Ctrl + P</kbd></td><td>Imprimir comprobante</td></tr>
+  <tr><td><kbd>/</kbd></td><td>Enfocar campo de búsqueda</td></tr>
+</table>
+
+<div class="footer">
+<p>POS Ferretería v1.0 &mdash; Documentación generada el 17 de mayo de 2026</p>
+</div>
+
+</div>
+</body>
+</html>

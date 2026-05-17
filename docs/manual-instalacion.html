@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Manual de Instalación - POS Ferretería</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; color: #333; background: #f5f5f5; }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,.1); }
+  h1 { color: #2563eb; border-bottom: 3px solid #2563eb; padding-bottom: 10px; }
+  h2 { color: #1e40af; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+  h3 { color: #374151; }
+  .toc { background: #f0f4ff; padding: 15px 20px; border-radius: 8px; margin: 20px 0; }
+  .toc ul { margin: 5px 0; padding-left: 20px; }
+  .toc a { color: #2563eb; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .note { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 10px 15px; margin: 15px 0; border-radius: 4px; }
+  .info { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 10px 15px; margin: 15px 0; border-radius: 4px; }
+  .warning { background: #fee2e2; border-left: 4px solid #ef4444; padding: 10px 15px; margin: 15px 0; border-radius: 4px; }
+  .success { background: #d1fae5; border-left: 4px solid #10b981; padding: 10px 15px; margin: 15px 0; border-radius: 4px; }
+  table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+  th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+  th { background: #2563eb; color: #fff; }
+  tr:nth-child(even) { background: #f9fafb; }
+  code { background: #f3f4f6; padding: 2px 6px; border-radius: 3px; font-size: .9em; }
+  pre { background: #1f2937; color: #f3f4f6; padding: 15px; border-radius: 8px; overflow-x: auto; font-size: .9em; }
+  .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: .9em; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Manual de Instalación</h1>
+<p><strong>Sistema POS Ferretería</strong> — Versión 1.0</p>
+
+<div class="toc">
+<h3>Contenido</h3>
+<ul>
+  <li><a href="#requisitos">1. Requisitos del Sistema</a></li>
+  <li><a href="#arquitectura">2. Arquitectura</a></li>
+  <li><a href="#docker">3. Instalación con Docker (Recomendada)</a></li>
+  <li><a href="#manual">4. Instalación Manual</a></li>
+  <li><a href="#frontend">5. Compilación del Frontend</a></li>
+  <li><a href="#configuracion">6. Configuración</a></li>
+  <li><a href="#basedatos">7. Base de Datos</a></li>
+  <li><a href="#red">8. Red y Puertos</a></li>
+  <li><a href="#resolucion">9. Solución de Problemas</a></li>
+  <li><a href="#actualizacion">10. Actualización</a></li>
+</ul>
+</div>
+
+<h2 id="requisitos">1. Requisitos del Sistema</h2>
+
+<h3>Hardware (Servidor)</h3>
+<table>
+  <tr><th>Componente</th><th>Mínimo</th><th>Recomendado</th></tr>
+  <tr><td>CPU</td><td>2 núcleos</td><td>4 núcleos</td></tr>
+  <tr><td>RAM</td><td>2 GB</td><td>4 GB</td></tr>
+  <tr><td>Disco</td><td>10 GB libres</td><td>20 GB SSD</td></tr>
+  <tr><td>Red</td><td>100 Mbps</td><td>1 Gbps</td></tr>
+</table>
+
+<h3>Software</h3>
+<table>
+  <tr><th>Componente</th><th>Versión</th><th>Notas</th></tr>
+  <tr><td>Docker Engine</td><td>24+</td><td>Contenedores</td></tr>
+  <tr><td>Docker Compose</td><td>v2.24+</td><td>Plugin de Docker</td></tr>
+  <tr><td>Git</td><td>2.40+</td><td>Control de versiones</td></tr>
+  <tr><td>Navegador</td><td>Moderno</td><td>Chrome, Firefox, Edge</td></tr>
+</table>
+
+<h3>Alternativa (sin Docker)</h3>
+<table>
+  <tr><th>Componente</th><th>Versión</th></tr>
+  <tr><td>.NET SDK</td><td>8.0</td></tr>
+  <tr><td>Node.js</td><td>18+</td></tr>
+  <tr><td>PostgreSQL</td><td>15+</td></tr>
+  <tr><td>Nginx</td><td>1.24+</td></tr>
+</table>
+
+<h2 id="arquitectura">2. Arquitectura</h2>
+<p>El sistema consta de tres servicios que se ejecutan como contenedores Docker:</p>
+
+<pre>
+┌─────────────────────────────────────────────────────────────┐
+│                    DOCKER NETWORK                            │
+│                                                             │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐   │
+│  │   Frontend   │    │  API .NET    │    │  PostgreSQL  │   │
+│  │   (nginx)    │───▶│  :5002       │───▶│  :5434       │   │
+│  │   :8082      │    │              │    │              │   │
+│  └──────────────┘    └──────────────┘    └──────────────┘   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+</pre>
+
+<ul>
+  <li><strong>Frontend:</strong> React + Vite servido por nginx en <code>:8082</code></li>
+  <li><strong>API:</strong> .NET 8 Web API en <code>:5002</code></li>
+  <li><strong>Base de datos:</strong> PostgreSQL 15 en <code>:5434</code></li>
+</ul>
+
+<h2 id="docker">3. Instalación con Docker (Recomendada)</h2>
+
+<h3>3.1 Clonar el Repositorio</h3>
+<pre>git clone https://github.com/agomezmo/pos.git
+cd pos</pre>
+
+<h3>3.2 Configurar Variables de Entorno</h3>
+<p>Edita el archivo <code>app.env</code> (o <code>docker-compose.yml</code>) con tus valores:</p>
+<pre># Base de datos
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=pos_ferretería
+
+# JWT
+JWT_SECRET=tu_clave_secreta_segura</pre>
+
+<h3>3.3 Iniciar los Servicios</h3>
+<pre>docker compose up -d</pre>
+<p>Esto iniciará los tres contenedores (db, api, frontend).</p>
+
+<div class="info">
+<strong>Verificar estado:</strong><br>
+<code>docker compose ps</code><br>
+<code>docker compose logs -f api</code>
+</div>
+
+<h3>3.4 Verificar la Instalación</h3>
+<ul>
+  <li>Frontend: <a href="http://localhost:8082">http://localhost:8082</a></li>
+  <li>API (swagger): <a href="http://localhost:5002/swagger">http://localhost:5002/swagger</a></li>
+  <li>API health: <code>curl http://localhost:5002/health</code></li>
+</ul>
+
+<div class="success">
+<strong>Instalación completada.</strong> El sistema está listo para usar.
+</div>
+
+<h3>3.5 Comandos Útiles de Docker</h3>
+<table>
+  <tr><th>Comando</th><th>Descripción</th></tr>
+  <tr><td><code>docker compose up -d</code></td><td>Iniciar servicios en segundo plano</td></tr>
+  <tr><td><code>docker compose down</code></td><td>Detener servicios</td></tr>
+  <tr><td><code>docker compose restart api</code></td><td>Reiniciar solo la API</td></tr>
+  <tr><td><code>docker compose logs -f</code></td><td>Ver logs en tiempo real</td></tr>
+  <tr><td><code>docker compose exec db psql -U postgres pos_ferretería</code></td><td>Conectarse a la BD</td></tr>
+  <tr><td><code>docker compose pull</code></td><td>Actualizar imágenes</td></tr>
+</table>
+
+<h2 id="manual">4. Instalación Manual</h2>
+
+<h3>4.1 Base de Datos PostgreSQL</h3>
+<pre>sudo apt install postgresql postgresql-contrib -y
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+sudo -u postgres psql -c "CREATE DATABASE pos_ferretería;"
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
+psql -h localhost -U postgres -d pos_ferretería -f database/schema.sql
+psql -h localhost -U postgres -d pos_ferretería -f database/seed_pharmacy.sql</pre>
+
+<h3>4.2 API .NET</h3>
+<pre># Requiere .NET SDK 8.0
+cd backend-net
+dotnet restore
+dotnet build --configuration Release
+dotnet publish --configuration Release --output /opt/pos/api
+
+# Configurar como servicio systemd
+sudo tee /etc/systemd/system/pos-api.service &lt;&lt; 'EOF'
+[Unit]
+Description=POS Ferretería API
+After=network.target postgresql.service
+
+[Service]
+WorkingDirectory=/opt/pos/api
+ExecStart=/usr/bin/dotnet /opt/pos/api/POS.API.dll
+Restart=always
+RestartSec=10
+Environment=ASPNETCORE_URLS=http://0.0.0.0:5002
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now pos-api.service</pre>
+
+<h3>4.3 Frontend</h3>
+<pre>cd frontend
+npm install
+npm run build
+sudo cp -r dist/* /var/www/pos/</pre>
+
+<h2 id="frontend">5. Compilación del Frontend</h2>
+<p>Para compilar el frontend React manualmente:</p>
+<pre>cd frontend
+npm install
+npm run build</pre>
+<p>Esto genera los archivos estáticos en <code>frontend/dist/</code>.</p>
+<p>Para desarrollo con hot-reload:</p>
+<pre>npm run dev</pre>
+<p>El servidor de desarrollo corre en <code>http://localhost:5173</code> y hace proxy a la API en <code>:5002</code>.</p>
+
+<h2 id="configuracion">6. Configuración</h2>
+
+<h3>6.1 Variables de Entorno (API)</h3>
+<p>Archivo <code>app.env</code>:</p>
+<pre># Base de datos
+DB_HOST=pos_ferretería_db
+DB_PORT=5432
+DB_NAME=pos_ferretería
+DB_USER=postgres
+DB_PASSWORD=postgres
+
+# JWT
+JWT_SECRET=ClaveSuperSegura123!
+JWT_ISSUER=POS.Ferretería
+JWT_AUDIENCE=POS.Ferretería.App
+JWT_EXPIRATION_HOURS=8
+
+# Configuración
+ASPNETCORE_ENVIRONMENT=Production
+ASPNETCORE_URLS=http://0.0.0.0:5002</pre>
+
+<h3>6.2 Nginx (Frontend)</h3>
+<p>El archivo <code>nginx.conf/default.conf</code> configura:</p>
+<ul>
+  <li>Servir archivos estáticos del frontend.</li>
+  <li>Proxy inverso de <code>/api</code> a la API en <code>:5002</code>.</li>
+  <li>Compresión gzip.</li>
+  <li>Headers de seguridad.</li>
+</ul>
+
+<h2 id="basedatos">7. Base de Datos</h2>
+
+<h3>7.1 Esquema</h3>
+<p>El esquema se encuentra en <code>database/schema.sql</code> e incluye:</p>
+<ul>
+  <li><strong>Companies</strong> — Información de la empresa</li>
+  <li><strong>Users</strong> — Usuarios del sistema</li>
+  <li><strong>Categories</strong> — Categorías de productos</li>
+  <li><strong>Products</strong> — Catálogo de productos</li>
+  <li><strong>Customers</strong> — Clientes</li>
+  <li><strong>Suppliers</strong> — Proveedores</li>
+  <li><strong>Sales / SaleItems</strong> — Ventas y detalle</li>
+  <li><strong>CashRegisterSessions</strong> — Sesiones de caja</li>
+  <li><strong>Expenses</strong> — Gastos</li>
+  <li><strong>Returns / ReturnItems</strong> — Devoluciones</li>
+  <li><strong>Patients</strong> — Pacientes</li>
+  <li><strong>Prescriptions / PrescriptionItems</strong> — Recetas</li>
+  <li><strong>InventoryMovements</strong> — Movimientos de inventario</li>
+  <li><strong>Alerts</strong> — Alertas del sistema</li>
+  <li><strong>Facturas</strong> — Facturación CFDI</li>
+  <li><strong>CompanySettings</strong> — Configuración general</li>
+</ul>
+
+<h3>7.2 Backup y Restauración</h3>
+<pre># Backup
+docker exec pos_ferretería_db pg_dump -U postgres pos_ferretería > backup_$(date +%Y%m%d).sql
+
+# Restore
+cat backup.sql | docker exec -i pos_ferretería_db psql -U postgres pos_ferretería</pre>
+
+<h2 id="red">8. Red y Puertos</h2>
+<table>
+  <tr><th>Servicio</th><th>Puerto Host</th><th>Puerto Contenedor</th><th>Descripción</th></tr>
+  <tr><td>Frontend</td><td>8081</td><td>80</td><td>Interfaz web</td></tr>
+  <tr><td>API</td><td>5001</td><td>5001</td><td>API REST</td></tr>
+  <tr><td>PostgreSQL</td><td>5433</td><td>5432</td><td>Base de datos</td></tr>
+</table>
+
+<div class="warning">
+<strong>Seguridad:</strong> En producción, no expongas el puerto de PostgreSQL (5433) a Internet. La base de datos solo debe ser accesible desde la red interna o mediante el contenedor de la API.
+</div>
+
+<h2 id="resolucion">9. Solución de Problemas</h2>
+
+<h3>Error: "Connection refused" a la API</h3>
+<ul>
+  <li>Verifica que el contenedor esté corriendo: <code>docker compose ps</code></li>
+  <li>Revisa logs: <code>docker compose logs api</code></li>
+  <li>Asegúrate de que el puerto 5001 no esté ocupado: <code>sudo lsof -i :5002</code></li>
+</ul>
+
+<h3>Error: "Cannot connect to database"</h3>
+<ul>
+  <li>Verifica que PostgreSQL esté listo: <code>docker compose logs db</code></li>
+  <li>Revisa credenciales en <code>app.env</code></li>
+  <li>Prueba conexión manual: <code>docker compose exec db psql -U postgres -d pos_ferretería</code></li>
+</ul>
+
+<h3>Error: "401 Unauthorized"</h3>
+<ul>
+  <li>El token JWT ha expirado. Vuelve a iniciar sesión.</li>
+  <li>Verifica la hora del servidor (debe estar sincronizada con NTP).</li>
+  <li>Revisa la clave JWT_SECRET en la configuración.</li>
+</ul>
+
+<h3>Error: Frontend en blanco o no carga</h3>
+<ul>
+  <li>Verifica que nginx esté corriendo: <code>docker compose logs frontend</code></li>
+  <li>Limpia caché del navegador (<kbd>Ctrl + Shift + R</kbd>).</li>
+  <li>Revisa la consola del navegador (F12) por errores.</li>
+</ul>
+
+<h3>Error: Docker no tiene permisos</h3>
+<pre>sudo usermod -aG docker $USER
+# Cerrar sesión y volver a iniciar</pre>
+
+<h2 id="actualizacion">10. Actualización</h2>
+
+<h3>Actualizar desde Git</h3>
+<pre>git pull origin main
+docker compose down
+docker compose build --no-cache api
+docker compose up -d</pre>
+
+<h3>Migraciones de Base de Datos</h3>
+<p>Las migraciones se aplican automáticamente al iniciar la API mediante Entity Framework. Para aplicar migraciones manualmente:</p>
+<pre>docker compose exec api dotnet ef database update</pre>
+
+<h3>Rollback</h3>
+<pre>git revert HEAD
+docker compose down
+docker compose up -d</pre>
+
+<div class="note">
+<strong>Nota:</strong> Siempre realiza un backup de la base de datos antes de actualizar.
+</div>
+
+<div class="footer">
+<p>POS Ferretería v1.0 &mdash; Documentación generada el 17 de mayo de 2026</p>
+</div>
+
+</div>
+</body>
+</html>
