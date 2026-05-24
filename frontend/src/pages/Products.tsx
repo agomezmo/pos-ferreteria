@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, useMemo, FormEvent } from 'react';
 import { productsApi, categoriesApi, suppliersApi } from '../services/api';
 
 interface Product {
@@ -12,7 +12,7 @@ interface Category { id: number; name: string; }
 interface Supplier { id: number; name: string; }
 
 export default function Products() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [search, setSearch] = useState('');
@@ -22,10 +22,32 @@ export default function Products() {
   const [form, setForm] = useState<any>({});
   const [error, setError] = useState('');
 
+  const products = useMemo(() => {
+    if (!search.trim()) return allProducts;
+    const q = search.toLowerCase();
+    return allProducts.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      (p.code && p.code.toLowerCase().includes(q)) ||
+      (p.barcode && p.barcode.toLowerCase().includes(q))
+    );
+  }, [allProducts, search]);
+
+  const normalizeProduct = (p: any): Product => ({
+    id: p.id, code: p.code, barcode: p.barcode, name: p.name, description: p.description,
+    categoryid: p.categoryid ?? p.categoryId, category_name: p.category_name ?? p.categoryName,
+    supplierid: p.supplierid ?? p.supplierId, supplier_name: p.supplier_name ?? p.supplierName,
+    purchaseprice: p.purchaseprice ?? p.purchasePrice, saleprice: p.saleprice ?? p.salePrice,
+    stock: p.stock, minstock: p.minstock ?? p.minStock, unit: p.unit,
+    isactive: p.isactive ?? p.isActive, requiresprescription: p.requiresprescription ?? false,
+    wholesale_price: p.wholesale_price ?? p.wholesalePrice,
+    expiry_date: p.expiry_date ?? p.expiryDate, requires_tax: p.requires_tax ?? p.requiresTax,
+  });
+
   const fetchProducts = async () => {
     try {
-      const res = await productsApi.getAll({ search, limit: 200 });
-      setProducts(res.data.products || []);
+      const res = await productsApi.getAll({ limit: 200 });
+      const raw = res.data.products || res.data || [];
+      setAllProducts(raw.map(normalizeProduct));
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
@@ -35,8 +57,6 @@ export default function Products() {
     categoriesApi.getAll().then(r => setCategories(r.data)).catch(() => {});
     suppliersApi.getAll().then(r => setSuppliers(r.data)).catch(() => {});
   }, []);
-
-  useEffect(() => { fetchProducts(); }, [search]);
 
   const openCreate = () => {
     setEditId(null);

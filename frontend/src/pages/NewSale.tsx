@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { productsApi, customersApi, salesApi } from '../services/api';
+import { productsApi, customersApi, salesApi, companyApi } from '../services/api';
 
 interface CartItem {
   productid: number;
@@ -13,6 +13,29 @@ interface CartItem {
 }
 
 interface Customer { id: number; fullname: string; rfc: string; }
+
+// Normalize ferretería API fields (camelCase → lowercase) for compatibility
+const normalizeProduct = (p: any): any => ({
+  id: p.id,
+  code: p.code,
+  barcode: p.barcode,
+  name: p.name,
+  description: p.description,
+  categoryid: p.categoryid ?? p.categoryId,
+  supplierid: p.supplierid ?? p.supplierId,
+  purchaseprice: p.purchaseprice ?? p.purchasePrice,
+  saleprice: p.saleprice ?? p.salePrice,
+  stock: p.stock,
+  minstock: p.minstock ?? p.minStock,
+  unit: p.unit,
+  isactive: p.isactive ?? p.isActive,
+  requiresprescription: p.requiresprescription ?? false,
+  requires_tax: p.requires_tax ?? p.requiresTax,
+  wholesale_price: p.wholesale_price ?? p.wholesalePrice,
+  expiry_date: p.expiry_date ?? p.expiryDate,
+  category_name: p.category_name ?? p.categoryName,
+  supplier_name: p.supplier_name ?? p.supplierName,
+});
 
 export default function NewSale() {
   const navigate = useNavigate();
@@ -31,6 +54,9 @@ export default function NewSale() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [saleData, setSaleData] = useState<any>(null);
+  const [companyData, setCompanyData] = useState<any>(null);
+  const [allProducts, setAllProducts] = useState<any[]>([]);
   const searchRef = useRef<HTMLInputElement>(null);
   const barcodeInput = useRef<HTMLInputElement>(null);
   const [barcode, setBarcode] = useState('');
@@ -40,19 +66,30 @@ export default function NewSale() {
   const total = subtotal + tax - discount;
   const change = Math.max(0, amountReceived - total);
 
-  const searchProducts = useCallback(async (q: string) => {
-    if (!q.trim()) { setProducts([]); return; }
-    try {
-      const res = await productsApi.getAll({ search: q, limit: 20 });
-      setProducts(res.data.products || []);
-      setShowResults(true);
-    } catch { setProducts([]); }
+  // Load all products on mount (API does not support server-side search)
+  useEffect(() => {
+    productsApi.getAll({ limit: 500 }).then(res => {
+      const raw = res.data.products || res.data || [];
+      setAllProducts(raw.map(normalizeProduct));
+    }).catch(() => {});
+    companyApi.get().then(res => setCompanyData(res.data)).catch(() => {});
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => searchProducts(search), 300);
-    return () => clearTimeout(timer);
-  }, [search, searchProducts]);
+    if (!search.trim()) {
+      setProducts(allProducts);
+      setShowResults(true);
+      return;
+    }
+    const q = search.toLowerCase();
+    const filtered = allProducts.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      (p.code && p.code.toLowerCase().includes(q)) ||
+      (p.barcode && p.barcode.toLowerCase().includes(q))
+    );
+    setProducts(filtered);
+    setShowResults(true);
+  }, [search, allProducts]);
 
   const searchCustomers = async (q: string) => {
     if (!q.trim()) { setCustomerResults([]); return; }
@@ -88,21 +125,20 @@ export default function NewSale() {
       }];
     });
     setSearch('');
-    setShowResults(false);
     searchRef.current?.focus();
   };
 
-  const handleBarcode = async () => {
+  const handleBarcode = () => {
     if (!barcode.trim()) return;
-    try {
-      const res = await productsApi.getAll({ search: barcode, limit: 1 });
-      const product = res.data.products?.[0];
-      if (product) {
-        addToCart(product);
-        setBarcode('');
-        barcodeInput.current?.focus();
-      }
-    } catch {}
+    const q = barcode.trim().toLowerCase();
+    const product = allProducts.find(p =>
+      p.barcode && p.barcode.toLowerCase() === q
+    );
+    if (product) {
+      addToCart(product);
+      setBarcode('');
+      barcodeInput.current?.focus();
+    }
   };
 
   const updateQuantity = (productId: number, qty: number) => {
@@ -122,7 +158,7 @@ export default function NewSale() {
     setLoading(true);
     setError('');
     try {
-      await salesApi.create({
+      const saleRes = await salesApi.create({
         customerid: customer?.id || undefined,
         items: cart.map(item => ({
           productid: item.productid,
@@ -134,10 +170,16 @@ export default function NewSale() {
         discount,
         notes,
       });
+      setSaleData(saleRes.data);
+
+      try {
+        const companyRes = await companyApi.get();
+        setCompanyData(companyRes.data);
+      } catch {
+        setCompanyData({ name: 'Mi Empresa', address: '', phone: '', codigopostal: '' });
+      }
+
       setSuccess(true);
-      setTimeout(() => {
-        navigate('/sales');
-      }, 2000);
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Error al procesar la venta');
     } finally {
@@ -146,12 +188,110 @@ export default function NewSale() {
   };
 
   if (success) {
+    const sale = saleData?.sale || saleData;
+    const items = sale?.items || cart;
+    const ticketTotal = sale?.total ?? total;
+    const ticketSubtotal = sale?.subtotal ?? subtotal;
+    const ticketTax = sale?.tax ?? tax;
+    const ticketDiscount = sale?.discount ?? discount;
+
+    const printTicket = () => {
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) return;
+      const ticketLines = items.map((item: any) =>
+        `<tr><td>${item.product_name || item.name}</td><td>${item.quantity}</td><td>$${Number(item.unitprice).toFixed(2)}</td><td>$${Number(item.subtotal || item.quantity * item.unitprice).toFixed(2)}</td></tr>`
+      ).join('');
+      printWindow.document.write(`
+        <html><head><title>Ticket de Venta</title>
+        <style>
+          body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; margin: 0 auto; padding: 10px; }
+          h2 { text-align: center; margin: 5px 0; }
+          .center { text-align: center; }
+          .header { text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { text-align: left; padding: 3px 2px; }
+          th { border-bottom: 1px solid #000; }
+          .right { text-align: right; }
+          .total-row td { border-top: 1px solid #000; font-weight: bold; }
+          .footer { text-align: center; margin-top: 10px; border-top: 1px dashed #000; padding-top: 10px; font-size: 10px; }
+          @media print { body { width: 100%; } }
+        </style></head><body>
+        <div class="header">
+          <h2>${companyData?.name || 'Mi Empresa'}</h2>
+          ${companyData?.address ? `<p>${companyData.address}</p>` : ''}
+          ${companyData?.phone ? `<p>Tel: ${companyData.phone}</p>` : ''}
+          ${companyData?.codigopostal ? `<p>CP: ${companyData.codigopostal}</p>` : ''}
+          <p>Folio: ${sale?.receiptnumber || sale?.id || ''}</p>
+          <p>${new Date().toLocaleString()}</p>
+        </div>
+        <table>
+          <thead><tr><th>Producto</th><th>Cant</th><th>Precio</th><th>Subtotal</th></tr></thead>
+          <tbody>${ticketLines}</tbody>
+          <tfoot>
+            <tr class="total-row"><td colspan="3" class="right">Subtotal:</td><td>$${Number(ticketSubtotal).toFixed(2)}</td></tr>
+            <tr><td colspan="3" class="right">IVA (16%):</td><td>$${Number(ticketTax).toFixed(2)}</td></tr>
+            ${ticketDiscount > 0 ? `<tr><td colspan="3" class="right">Descuento:</td><td>-$${Number(ticketDiscount).toFixed(2)}</td></tr>` : ''}
+            <tr class="total-row"><td colspan="3" class="right">TOTAL:</td><td>$${Number(ticketTotal).toFixed(2)}</td></tr>
+          </tfoot>
+        </table>
+        <div class="footer">
+          <p>¡Gracias por su compra!</p>
+          <p>${sale?.paymentmethod || paymentMethod} - Recibí: $${Number(sale?.amountreceived || amountReceived).toFixed(2)} ${(sale?.amountreceived || amountReceived) > 0 ? 'Cambio: $' + Number((sale?.amountreceived || amountReceived) - ticketTotal).toFixed(2) : ''}</p>
+        </div>
+        </body></html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => printWindow.print(), 500);
+    };
+
     return (
       <div className="page">
         <div className="success-screen">
           <div className="success-icon">✅</div>
           <h1>Venta Registrada Exitosamente</h1>
-          <p>Redirigiendo al historial de ventas...</p>
+          <p>Folio: <strong>{sale?.receiptnumber || sale?.id || ''}</strong></p>
+
+          <div className="ticket-preview" style={{margin: '1rem auto', maxWidth: '400px', border: '1px solid #ccc', padding: '1rem', fontFamily: 'monospace', fontSize: '12px', textAlign: 'center'}}>
+            <h3 style={{margin: '0 0 5px'}}>{companyData?.name || 'Mi Empresa'}</h3>
+            {companyData?.address && <p style={{margin: '2px 0'}}>{companyData.address}</p>}
+            {companyData?.phone && <p style={{margin: '2px 0'}}>Tel: {companyData.phone}</p>}
+            {companyData?.codigopostal && <p style={{margin: '2px 0'}}>CP: {companyData.codigopostal}</p>}
+            <hr style={{margin: '8px 0'}} />
+            <table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left'}}>
+              <thead>
+                <tr style={{borderBottom: '1px solid #000'}}>
+                  <th>Producto</th><th>Cant</th><th>P/U</th><th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item: any, idx: number) => (
+                  <tr key={idx}>
+                    <td>{item.product_name || item.name}</td>
+                    <td>{item.quantity}</td>
+                    <td>${Number(item.unitprice).toFixed(2)}</td>
+                    <td>${Number(item.subtotal || item.quantity * item.unitprice).toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <hr style={{margin: '8px 0'}} />
+            <div style={{textAlign: 'right'}}>
+              <p style={{margin: '2px 0'}}>Subtotal: ${Number(ticketSubtotal).toFixed(2)}</p>
+              <p style={{margin: '2px 0'}}>IVA (16%): ${Number(ticketTax).toFixed(2)}</p>
+              {ticketDiscount > 0 && <p style={{margin: '2px 0'}}>Descuento: -${Number(ticketDiscount).toFixed(2)}</p>}
+              <p style={{margin: '5px 0', fontWeight: 'bold', fontSize: '14px'}}>TOTAL: ${Number(ticketTotal).toFixed(2)}</p>
+            </div>
+          </div>
+
+          <div style={{display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '1rem'}}>
+            <button className="btn-primary" onClick={printTicket}>
+              🖨️ Imprimir Ticket
+            </button>
+            <button className="btn-secondary" onClick={() => navigate('/sales')}>
+              Ir a Ventas
+            </button>
+          </div>
         </div>
       </div>
     );

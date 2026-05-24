@@ -24,7 +24,7 @@ export default function Login() {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h1>POS Farmacia</h1>
+        <h1>POS Ferretería</h1>
         <h2>Sistema de Punto de Venta</h2>
         <form onSubmit={handleSubmit}>
           {error && <div className="error-message">{error}</div>}

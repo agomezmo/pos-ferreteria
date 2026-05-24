@@ -16,7 +16,7 @@ export default function Layout() {
     <div className="app-layout">
       <nav className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <h2>POS Farmacia</h2>
+          <h2>POS Ferretería</h2>
           <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>×</button>
         </div>
         <div className="sidebar-menu">
@@ -50,7 +50,7 @@ export default function Layout() {
           <div className="nav-section">INVENTARIO</div>
           <NavLink to="/products" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
             onClick={() => setSidebarOpen(false)}>
-            <span className="nav-icon">💊</span> Productos
+            <span className="nav-icon">🔧</span> Productos
           </NavLink>
           <NavLink to="/categories" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
             onClick={() => setSidebarOpen(false)}>

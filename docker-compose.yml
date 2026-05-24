@@ -37,6 +37,24 @@ services:
       db:
         condition: service_healthy
 
+  auth-me:
+    build:
+      context: ./auth-me-service
+      dockerfile: Dockerfile
+    container_name: pos_ferreteria_auth_me
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: pos_ferreteria
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      JWT_SECRET: "FerreteriaPOS_SuperSecretKey_2024_MustBeLongEnough!"
+    ports:
+      - "3050:3050"
+    depends_on:
+      db:
+        condition: service_healthy
+
   frontend:
     image: nginx:alpine
     container_name: pos_ferreteria_frontend

@@ -1,9 +1,9 @@
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using POS.API.DTOs;
+using Microsoft.EntityFrameworkCore;
 using POS.API.Data;
+using POS.API.DTOs;
+using POS.API.Models;
 
 namespace POS.API.Controllers;
 
@@ -12,39 +12,77 @@ namespace POS.API.Controllers;
 [Authorize]
 public class CompanyController : ControllerBase
 {
-	private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
 
-	public CompanyController(AppDbContext context)
-	{
-		_context = context;
-	}
+    public CompanyController(AppDbContext context)
+    {
+        _context = context;
+    }
 
-	[AsyncStateMachine(typeof(_003CGetCompanyInfo_003Ed__2))]
-	[HttpGet]
-	public System.Threading.Tasks.Task<ActionResult<CompanyInfoDTO>> GetCompanyInfo()
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetCompanyInfo_003Ed__2 _003CGetCompanyInfo_003Ed__ = default(_003CGetCompanyInfo_003Ed__2);
-		_003CGetCompanyInfo_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<CompanyInfoDTO>>.Create();
-		_003CGetCompanyInfo_003Ed__._003C_003E4__this = this;
-		_003CGetCompanyInfo_003Ed__._003C_003E1__state = -1;
-		_003CGetCompanyInfo_003Ed__._003C_003Et__builder.Start<_003CGetCompanyInfo_003Ed__2>(ref _003CGetCompanyInfo_003Ed__);
-		return _003CGetCompanyInfo_003Ed__._003C_003Et__builder.get_Task();
-	}
+    [HttpGet]
+    public async Task<ActionResult<CompanyInfoDTO>> GetCompanyInfo()
+    {
+        var company = await _context.CompanyInfos.FirstOrDefaultAsync();
+        if (company == null)
+        {
+            return Ok(new CompanyInfoDTO
+            {
+                Name = "Mi Empresa",
+                Address = "",
+                Phone = "",
+                Email = "",
+                CodigoPostal = ""
+            });
+        }
+        return Ok(MapToDTO(company));
+    }
 
-	[AsyncStateMachine(typeof(_003CUpdateCompanyInfo_003Ed__3))]
-	[HttpPut]
-	public System.Threading.Tasks.Task<ActionResult<CompanyInfoDTO>> UpdateCompanyInfo([FromBody] UpdateCompanyInfoRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CUpdateCompanyInfo_003Ed__3 _003CUpdateCompanyInfo_003Ed__ = default(_003CUpdateCompanyInfo_003Ed__3);
-		_003CUpdateCompanyInfo_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<CompanyInfoDTO>>.Create();
-		_003CUpdateCompanyInfo_003Ed__._003C_003E4__this = this;
-		_003CUpdateCompanyInfo_003Ed__.request = request;
-		_003CUpdateCompanyInfo_003Ed__._003C_003E1__state = -1;
-		_003CUpdateCompanyInfo_003Ed__._003C_003Et__builder.Start<_003CUpdateCompanyInfo_003Ed__3>(ref _003CUpdateCompanyInfo_003Ed__);
-		return _003CUpdateCompanyInfo_003Ed__._003C_003Et__builder.get_Task();
-	}
+    [HttpPut]
+    public async Task<ActionResult<CompanyInfoDTO>> UpdateCompanyInfo([FromBody] UpdateCompanyInfoRequest request)
+    {
+        var company = await _context.CompanyInfos.FirstOrDefaultAsync();
+        if (company == null)
+        {
+            company = new CompanyInfo
+            {
+                Name = request.Name ?? "Mi Empresa"
+            };
+            _context.CompanyInfos.Add(company);
+        }
+        else
+        {
+            if (request.Name != null) company.Name = request.Name;
+        }
+
+        if (request.BusinessName != null) company.BusinessName = request.BusinessName;
+        if (request.Address != null) company.Address = request.Address;
+        if (request.Phone != null) company.Phone = request.Phone;
+        if (request.Email != null) company.Email = request.Email;
+        if (request.LogoUrl != null) company.LogoUrl = request.LogoUrl;
+        if (request.TaxId != null) company.TaxId = request.TaxId;
+        if (request.ReceiptFooter != null) company.ReceiptFooter = request.ReceiptFooter;
+        if (request.Slogan != null) company.Slogan = request.Slogan;
+        if (request.CodigoPostal != null) company.CodigoPostal = request.CodigoPostal;
+
+        await _context.SaveChangesAsync();
+        return Ok(MapToDTO(company));
+    }
+
+    private static CompanyInfoDTO MapToDTO(CompanyInfo c)
+    {
+        return new CompanyInfoDTO
+        {
+            Id = c.Id,
+            Name = c.Name,
+            BusinessName = c.BusinessName,
+            Address = c.Address,
+            Phone = c.Phone,
+            Email = c.Email,
+            LogoUrl = c.LogoUrl,
+            TaxId = c.TaxId,
+            ReceiptFooter = c.ReceiptFooter,
+            Slogan = c.Slogan,
+            CodigoPostal = c.CodigoPostal
+        };
+    }
 }

@@ -1,0 +1,147 @@
+code,name,description,category_id,purchase_price,sale_price,stock,min_stock,unit,requires_tax
+HEM-001,Martillo de Uña 16oz,Martillo de acero forjado con mango de fibra,1,35.00,75.00,50,10,pza,true
+HEM-002,Desarmador Plano 1/4x6,Desarmador punta plana mango ergonómico,1,8.00,18.00,100,20,pza,true
+HEM-003,Desarmador Phillips #2x6,Desarmador punta cruz mango ergonómico,1,8.00,18.00,100,20,pza,true
+HEM-004,Martillo de Goma 24oz,Martillo de goma mango de madera,1,25.00,55.00,40,10,pza,true
+HEM-005,Cinta Métrica 5m,Cinta métrica metálica 5m x 19mm,1,12.00,28.00,80,15,pza,true
+HEM-006,Nivel de Mano 24",Nivel de aluminio 24 pulgadas con imán,1,30.00,65.00,35,8,pza,true
+HEM-007,Pinza Universal 8",Pinza de corte y sujeción acero cromo-vanadio,1,18.00,40.00,60,12,pza,true
+HEM-008,Arco de Sierra 12",Arco para segueta metálica ajustable,1,20.00,45.00,30,6,pza,true
+HEM-009,Llave Ajustable 10",Llave perica con ajuste pulgadas/métrico,1,40.00,85.00,40,8,pza,true
+HEM-010,Juego de Llaves Allen 1.5-10mm,Juego 9 piezas hexagonales métricas,1,25.00,55.00,45,10,pza,true
+HEM-011,Playo de Presión 10",Pinza de presión ajustable,1,22.00,48.00,50,10,pza,true
+HEM-012,Cincel Plano 3/4 x 8,Cincel de acero para concreto,1,12.00,28.00,30,6,pza,true
+HEM-013,Lima Plana 10",Lima de acero con mango,1,15.00,35.00,40,8,pza,true
+HEM-014,Juego de Brochas 1/2-2-3",Juego 3 brochas de cerdas sintéticas,1,18.00,40.00,50,10,pza,true
+HEM-015,Cuter Retráctil 18mm,Cuchilla retráctil con almacén,1,7.00,16.00,100,20,pza,true
+HEL-01,Taladro Percutor 1/2",Taladro eléctrico 600W con mandril,2,150.00,350.00,20,5,pza,true
+HEL-02,Esmeril Angular 4 1/2",Esmeril angular 750W con disco,2,200.00,480.00,15,3,pza,true
+HEL-03,Caladora Eléctrica 500W,Caladora con velocidad variable,2,180.00,420.00,12,3,pza,true
+HEL-04,Sierra Circular 7 1/4",Sierra circular 1200W con guía,2,250.00,580.00,10,2,pza,true
+HEL-05,Lijadora Orbital 300W,Lijadora orbital hoja 1/3,2,160.00,380.00,12,3,pza,true
+HEL-06,Rotomartillo SDS 800W,Rotomartillo con función percutor,2,350.00,780.00,8,2,pza,true
+HEL-07,Pulidora Automotriz 7",Pulidora 1000W con velocidad variable,2,280.00,620.00,10,2,pza,true
+HEL-08,Soldador Inverter 160A,Máquina de soldar 160A electrodo revestido,2,400.00,920.00,6,2,pza,true
+HEL-09,Compresor de Aire 25L,Compresor portátil 1.5HP 25L,2,500.00,1150.00,5,1,pza,true
+HEL-10,Hidrolavadora 120bar,Hidrolavadora eléctrica 1400W,2,350.00,800.00,8,2,pza,true
+HEL-11,Multímetro Digital,Multímetro digital con pinza amperométrica,2,30.00,70.00,25,5,pza,true
+HEL-12,Pistola de Calor 2000W,Pistola térmica con 2 temperaturas,2,45.00,100.00,20,4,pza,true
+HEL-13,Atornillador Eléctrico 4V,Atornillador inalámbrico USB recargable,2,60.00,140.00,30,6,pza,true
+HEL-14,Lámpara de Trabajo LED 50W,Lámpara portátil LED con trípode,2,80.00,180.00,15,3,pza,true
+HEL-15,Extractor de Aire 12",Extractor axial 120V para taller,2,120.00,280.00,10,2,pza,true
+MAT-001,Cemento Gris 50kg,Bolsa de cemento Portland CPC 30R,3,45.00,95.00,80,15,pza,true
+MAT-002,Cemento Blanco 25kg,Bolsa de cemento blanco CPC 30R,3,55.00,120.00,40,8,pza,true
+MAT-003,Cal Hidratada 20kg,Bolsa de cal para construcción,3,25.00,55.00,50,10,pza,true
+MAT-004,Yeso 20kg,Bolsa de yeso estándar,3,18.00,42.00,60,12,pza,true
+MAT-005,Varilla Corrugada 3/8 x 6m,Varilla de acero corrugado grado 42,3,35.00,78.00,200,40,pza,true
+MAT-006,Varilla Corrugada 1/2 x 6m,Varilla de acero corrugado grado 42,3,55.00,120.00,150,30,pza,true
+MAT-007,Block Hueco 10x20x40,Block de concreto para muros pz,3,3.50,8.00,500,100,pza,true
+MAT-008,Block Hueco 15x20x40,Block de concreto para muros pz,3,4.50,10.00,400,80,pza,true
+MAT-009,Tablero OSB 1/2 122x244,Tablero de fibra orientada 12mm,3,80.00,180.00,30,6,pza,true
+MAT-010,Contrachapado 3/4 122x244,Triplay marino 18mm,3,120.00,280.00,25,5,pza,true
+MAT-011,Tabique Rojo 6x12x24,Tabique de barro cocido pz,3,2.00,5.00,1000,200,pza,true
+MAT-012,Grava Triturada 1/2 x 40kg,Saco de grava para concreto,3,10.00,24.00,60,12,pza,true
+MAT-013,Arena Fina x 40kg,Saco de arena cernida para construcción,3,8.00,20.00,80,16,pza,true
+MAT-014,Malla Electrosoldada 6x6 2.5mm,Malla para losa 2.5mm rollo 2x3m,3,60.00,140.00,20,4,pza,true
+MAT-015,Piedra Bola Decorativa 25kg,Saco de piedra para jardín,3,12.00,28.00,40,8,pza,true
+PLO-001,Tubo PVC 1/2" x 3m,Tubo de PVC para agua potable,4,8.00,20.00,100,20,pza,true
+PLO-002,Tubo PVC 3/4" x 3m,Tubo de PVC para agua potable,4,10.00,24.00,100,20,pza,true
+PLO-003,Tubo PVC 1" x 3m,Tubo de PVC para agua potable,4,14.00,32.00,80,16,pza,true
+PLO-004,Codo PVC 1/2",Codo 90° PVC cementar agua potable,4,1.00,3.00,500,100,pza,true
+PLO-005,Codo PVC 3/4",Codo 90° PVC cementar agua potable,4,1.50,4.00,500,100,pza,true
+PLO-006,Tee PVC 1/2",Tee PVC cementar agua potable,4,1.50,4.00,400,80,pza,true
+PLO-007,Adaptador PVC 1/2" Macho,Adaptador macho PVC para tanque,4,2.00,5.00,300,60,pza,true
+PLO-008,Válvula de Esfera 1/2",Válvula esfera PVC cementar,4,8.00,20.00,80,16,pza,true
+PLO-009,Válvula de Esfera 3/4",Válvula esfera PVC cementar,4,10.00,24.00,70,14,pza,true
+PLO-010,Tubo CPVC 1/2" x 3m,Tubo CPVC para agua caliente,4,12.00,28.00,60,12,pza,true
+PLO-011,Sifón para Lavabo 1 1/4",Sifón tipo P cromado para lavabo,4,15.00,35.00,40,8,pza,true
+PLO-012,Flotador para Tanque 1/2",Flotador mecánico para cisterna,4,12.00,28.00,50,10,pza,true
+PLO-013,Cinta de Teflón 1/2 x 10m,Cinta selladora para roscas,4,3.00,8.00,200,40,pza,true
+PLO-014,Silicón para Baño Transparente 280ml,Sellador de silicón para baño,4,8.00,18.00,80,16,pza,true
+PLO-015,Llave de Jardín 1/2",Llave de paso tipo boca de riego,4,15.00,35.00,60,12,pza,true
+ELE-001,Interruptor Sencillo 10A,Interruptor vertical blanco 10A 127V,5,5.00,12.00,200,40,pza,true
+ELE-002,Apagador de Escalera 10A,Apagador de 3 vías blanco 10A,5,7.00,16.00,150,30,pza,true
+ELE-003,Contacto Doble 15A,Contacto polarizado blanco 15A 127V,5,6.00,14.00,200,40,pza,true
+ELE-004,Contacto USB Doble,Contacto con puertos USB 2.1A,5,25.00,55.00,60,12,pza,true
+ELE-005,Cable THW #12 100m,Rollo cable THW calibre 12,5,80.00,180.00,30,6,pza,true
+ELE-006,Cable THW #10 100m,Rollo cable THW calibre 10,5,120.00,280.00,20,4,pza,true
+ELE-007,Centro de Carga 8 Pastillas,Tablero eléctrico 8 espacios,5,50.00,120.00,25,5,pza,true
+ELE-008,Pastilla Termomagnética 15A 1P,Interruptor termomagnético 1 polo 15A,5,12.00,28.00,100,20,pza,true
+ELE-009,Pastilla Termomagnética 20A 1P,Interruptor termomagnético 1 polo 20A,5,12.00,28.00,100,20,pza,true
+ELE-010,Foco LED 12W, Foco LED luz blanca 127V,5,3.00,8.00,500,100,pza,true
+ELE-011,Foco LED 20W, Foco LED luz cálida 127V,5,5.00,12.00,400,80,pza,true
+ELE-012,Multicontacto 6 Tomas 2m,Regleta de 6 contactos con supresor,5,15.00,35.00,60,12,pza,true
+ELE-013,Extensión Eléctrica 10m,Extension 3 contactos calibre 14,5,20.00,45.00,50,10,pza,true
+ELE-014,Switch de Cuchilla 60A,Desconectador tipo cuchilla 2 polos,5,35.00,80.00,20,4,pza,true
+ELE-015,Fotocontacto 120V,Fotocontrol para alumbrado exterior,5,18.00,42.00,40,8,pza,true
+PIN-001,Pintura Vinílica Blanca 4L,Pintura vinílica mate interior 4 litros,6,40.00,90.00,40,8,pza,true
+PIN-002,Pintura Vinílica Blanco 1L,Pintura vinílica mate interior 1 litro,6,12.00,28.00,60,12,pza,true
+PIN-003,Pintura Esmalte Negro 1L,Pintura esmalte sintético brillante,6,18.00,42.00,50,10,pza,true
+PIN-004,Esmalte Acrílico Blanco 1L,Pintura acrílica satinada para interiores,6,22.00,50.00,40,8,pza,true
+PIN-005,Impermeabilizante Blanco 19L,Impermeabilizante acrílico elastomérico,6,250.00,580.00,10,2,pza,true
+PIN-006,Thinner Estándar 1L,Diluyente para esmaltes y lacas,6,8.00,20.00,80,16,pza,true
+PIN-007,Imprimante para Metal 1L,Pintura anticorrosiva para metal,6,25.00,55.00,30,6,pza,true
+PIN-008,Barniz Marino 1L,Barniz transparente para exterior,6,30.00,68.00,25,5,pza,true
+PIN-009,Pintura para Pizarrón 1L,Pintura para superficie magnética,6,35.00,78.00,15,3,pza,true
+PIN-010,Spray para Graffitti Negro 400ml,Pintura en aerosol 400ml,6,8.00,18.00,100,20,pza,true
+PIN-011,Disolvente para Pintura 4L,Disolvente multiusos 4 litros,6,15.00,35.00,30,6,pza,true
+PIN-012,Rodillo para Pintar 9",Rodillo de felpa 9 pulgadas con mango,6,5.00,12.00,120,24,pza,true
+PIN-013,Bandeja para Rodillo 9",Charola metálica para pintura,6,4.00,10.00,80,16,pza,true
+PIN-014,Espátula para Pintar 3",Espátula flexible de acero,6,3.00,8.00,100,20,pza,true
+PIN-015,Masking Tape 2" x 50m,Cinta de enmascarar de alta adherencia,6,6.00,14.00,150,30,pza,true
+FIJ-001,Clavo de 2 1/2" Caja 1kg,Clavo de acero para madera con cabeza,7,5.00,12.00,200,40,pza,true
+FIJ-002,Clavo de 4" Caja 1kg,Clavo de acero para madera,7,6.00,14.00,150,30,pza,true
+FIJ-003,Tornillo Madera 2" Caja 100,Tornillo autorroscante para madera,7,8.00,18.00,100,20,pza,true
+FIJ-004,Tornillo Madera 3" Caja 50,Tornillo autorroscante para madera,7,7.00,16.00,80,16,pza,true
+FIJ-005,Tornillo para Lámina 2" Caja 50,Tornillo autoperforante con arandela,7,9.00,20.00,80,16,pza,true
+FIJ-006,Remache Pop 1/8 x 1/2 Caja 100,Remache de aluminio multiusos,7,4.00,10.00,200,40,pza,true
+FIJ-007,Sikaflex 300ml,Sellador de poliuretano negro,7,12.00,28.00,60,12,pza,true
+FIJ-008,Pegamento para PVC 250ml,Cemento solvente para PVC,7,8.00,18.00,80,16,pza,true
+FIJ-009,Resistol 5000 1L,Pegamento blanco multiusos,7,6.00,14.00,100,20,pza,true
+FIJ-010,Thinner 1L,Disolvente para limpieza,7,7.00,16.00,120,24,pza,true
+FIJ-011,Arandela Plana 1/4 Caja 50,Arandela de presión galvanizada,7,3.00,8.00,200,40,pza,true
+FIJ-012,Tuerca Hexagonal 1/4 Caja 50,Tuerca galvanizada para perno,7,3.00,8.00,200,40,pza,true
+FIJ-013,Perno Hexagonal 1/4 x 2 Caja 25,Perno galvanizado con rosca,7,5.00,12.00,100,20,pza,true
+FIJ-014,Cinta de Aislar 3M 18mm,Cinta aislante vinílica negra 18mm,7,3.00,8.00,500,100,pza,true
+FIJ-015,Silicon Transparente 280ml,Sellador transparente multiusos,7,5.00,12.00,120,24,pza,true
+JAR-001,Tijeras de Podar 20",Tijera de podar mango largo acero,8,35.00,80.00,25,5,pza,true
+JAR-002,Palita de Jardín Acero,Palita de jardín con mango antiderrapante,8,8.00,18.00,60,12,pza,true
+JAR-003,Rastrillo para Jardín 12",Rastrillo de acero con mango 15",8,12.00,28.00,40,8,pza,true
+JAR-004,Bolsa de Tierra Negra 40kg,Saco de tierra preparada para jardín,8,5.00,12.00,100,20,pza,true
+JAR-005,Fertilizante Multiusos 2kg,Abono granulado NPK 20-20-20,8,8.00,18.00,80,16,pza,true
+JAR-006,Manguera Jardín 1/2 x 15m,Manguera trenzada reforzada,8,15.00,35.00,40,8,pza,true
+JAR-007,Aspersor de Impacto Metal,Aspersor para riego de jardín,8,12.00,28.00,30,6,pza,true
+JAR-008,Maceta Plástica 30cm,Maceta redonda para jardín 30cm,8,6.00,14.00,100,20,pza,true
+JAR-009,Bolsa de Césped 1kg,Semilla de pasto para jardín,8,4.00,10.00,80,16,pza,true
+JAR-010,Regadera Plástica 5L,Regadera con rociador 5 litros,8,7.00,16.00,50,10,pza,true
+JAR-011,Guantes de Jardín Lona,Par de guantes con palma de látex,8,5.00,12.00,80,16,pza,true
+JAR-012,Podadora Manual Pasto,Tijera podadora de pasto,8,22.00,50.00,20,4,pza,true
+JAR-013,Manguera de Riego 40m,Manguera expandible 40m con conector,8,25.00,55.00,25,5,pza,true
+JAR-014,Bomba de Agua Sumergible 1HP,Bomba sumergible 1HP 220V,8,250.00,580.00,8,2,pza,true
+JAR-015,Malla Sombra 50% 2x5m,Malla para protección solar,8,15.00,35.00,30,6,pza,true
+SEG-001,Candado de Acero 50mm,Candado con arco galvanizado,9,10.00,24.00,60,12,pza,true
+SEG-002,Candado de Combinación 30mm,Candado con clave de 3 dígitos,9,15.00,35.00,40,8,pza,true
+SEG-003,Cadena de Seguridad 1m,Cadena galvanizada 8mm con candado,9,18.00,40.00,30,6,pza,true
+SEG-004,Chapa de Sobreponer 2 Golpes,Chapa metálica con llave,9,25.00,55.00,40,8,pza,true
+SEG-005,Cerradura Eléctrica 12V,Cerradura electromagnética para puerta,9,60.00,140.00,15,3,pza,true
+SEG-006,Extintor Polvo Químico 4.5kg,Extintor ABC para casa/oficina,9,55.00,120.00,25,5,pza,true
+SEG-006A,Extintor CO2 10lb,Extintor CO2 para equipo eléctrico,9,80.00,180.00,15,3,pza,true
+SEG-007,Casco de Seguridad, Casco dieléctrico con suspensión,9,15.00,35.00,40,8,pza,true
+SEG-008,Guantes de Carnaza,Par de guantes de cuero carnaza,9,8.00,18.00,60,12,pza,true
+SEG-009,Lentes de Seguridad,Lentes transparentes antiimpacto,9,5.00,12.00,100,20,pza,true
+SEG-010,Chaleco Reflectante,Chaleco alta visibilidad cintas,9,12.00,28.00,30,6,pza,true
+SEG-011,Señal de Salida LED,Señal de emergencia luz LED,9,20.00,45.00,25,5,pza,true
+SEG-012,Botiquín de Emergencia 20pzas,Botiquín de primeros auxilios,9,35.00,78.00,20,4,pza,true
+SEG-013,Arnés de Seguridad Cuerpo Completo,Arnés de seguridad con 2 argollas,9,120.00,280.00,10,2,pza,true
+SEG-014,Cuerda de Seguridad 15m,Cuerda estática 15m x 14mm,9,45.00,100.00,15,3,pza,true
+SEG-015,Tapa de Pozo Metálica 60cm,Tapa de registro redonda 60cm,9,80.00,190.00,10,2,pza,true
+ELE-016,Cable Desnudo #8 10m,Cable de cobre desnudo para tierra,5,15.00,35.00,30,6,pza,true
+ELE-017,Conductor THW #8 100m,Rollo cable THW calibre 8,5,180.00,420.00,15,3,pza,true
+ELE-018,Pastilla Termomagnética 30A 2P,Interruptor termomagnético 2 polos 30A,5,25.00,58.00,40,8,pza,true
+ELE-019,Contacto Polarizado Sencillo 15A,Contacto sencillo blanco 15A 127V,5,5.00,12.00,150,30,pza,true
+ELE-020,Placa Decorativa Blanca 1 Módulo,Placa para interruptor/contacto 1 pieza,5,3.00,8.00,200,40,pza,true
+FIJ-016,Ángulo Metálico 1" x 1" x 1.5m,Ángulo de acero al carbón,7,12.00,28.00,60,12,pza,true
+FIJ-017,Perfil Tubular 1" x 1.5m,PTS cuadrado calibre 14,7,15.00,35.00,40,8,pza,true
+FIJ-018,Polín C 3" x 2.4m,Polín de acero para estructura,7,25.00,58.00,30,6,pza,true
+FIJ-019,Varilla Roscada 1/4 x 1m,Varilla con rosca métrica,7,8.00,18.00,80,16,pza,true
+FIJ-020,Grapa Metálica 1/2 Caja 100,Grapa para fijar malla ciclónica,7,4.00,10.00,100,20,pza,true

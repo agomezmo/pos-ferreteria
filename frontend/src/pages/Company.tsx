@@ -5,7 +5,7 @@ export default function Company() {
   const [company, setCompany] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ name: '', rfc: '', address: '', phone: '', email: '', logo_url: '' });
+  const [form, setForm] = useState({ name: '', rfc: '', address: '', phone: '', email: '', codigopostal: '', logo_url: '' });
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
@@ -13,7 +13,7 @@ export default function Company() {
       .then(res => {
         const c = res.data;
         setCompany(c);
-        setForm({ name: c.name || '', rfc: c.rfc || '', address: c.address || '', phone: c.phone || '', email: c.email || '', logo_url: c.logo_url || '' });
+        setForm({ name: c.name || '', rfc: c.rfc || '', address: c.address || '', phone: c.phone || '', email: c.email || '', codigopostal: c.codigopostal || '', logo_url: c.logo_url || '' });
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -63,6 +63,12 @@ export default function Company() {
               <input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
             </div>
             <div className="form-group">
+              <label>Código Postal</label>
+              <input value={form.codigopostal} onChange={e => setForm({...form, codigopostal: e.target.value})} maxLength={5} placeholder="12345" />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
               <label>Email</label>
               <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
             </div>
@@ -85,6 +91,7 @@ export default function Company() {
             {company.rfc && <p>RFC: {company.rfc}</p>}
             {company.address && <p>Dirección: {company.address}</p>}
             {company.phone && <p>Tel: {company.phone}</p>}
+            {company.codigopostal && <p>CP: {company.codigopostal}</p>}
             {company.email && <p>Email: {company.email}</p>}
           </div>
         </div>
