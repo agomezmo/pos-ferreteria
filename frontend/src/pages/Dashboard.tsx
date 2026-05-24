@@ -48,7 +48,7 @@ function HBarChart({ data, labelKey, valueKey, valueLabel, title, color, format 
             const v = Number(d[valueKey]); const bw = (v / max) * cw; const y = i * (bh + gap) + 10;
             const name = (d[labelKey] || '').toString(); const short = name.length > 28 ? name.slice(0, 26) + '...' : name;
             return (<g key={i}>
-              <text x={0} y={y + bh / 2 + 5} fontSize={13} fill="var(--gray-700)" textAnchor="end" fontWeight="500">{short}</text>
+              <text x={lw - 6} y={y + bh / 2 + 5} fontSize={13} fill="var(--gray-700)" textAnchor="end" fontWeight="500">{short}</text>
               <rect x={lw + 4} y={y} width={Math.max(bw, 6)} height={bh} rx={4} fill={color} opacity={0.85}>
                 <title>{`${name}\n${valueLabel || valueKey}: ${format ? format(v) : v}`}</title>
               </rect>
