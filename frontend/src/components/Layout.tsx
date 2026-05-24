@@ -30,7 +30,7 @@ export default function Layout() {
             onClick={() => setSidebarOpen(false)}>
             <span className="nav-icon">🛒</span> Nueva Venta
           </NavLink>
-          <NavLink to="/sales" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
+          <NavLink to="/sales" end className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
             onClick={() => setSidebarOpen(false)}>
             <span className="nav-icon">📋</span> Historial Ventas
           </NavLink>

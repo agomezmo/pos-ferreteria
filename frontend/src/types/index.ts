@@ -1,12 +1,12 @@
 export interface User {
   id: number;
   username: string;
-  email: string;
+  email?: string;
   fullname: string;
   role: string;
-  isactive: boolean;
-  lastlogin: string;
-  createdat: string;
+  isactive?: boolean;
+  lastlogin?: string;
+  createdat?: string;
 }
 
 export interface AuthResponse {

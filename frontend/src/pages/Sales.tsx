@@ -7,6 +7,7 @@ export default function Sales() {
   const [detail, setDetail] = useState<any>(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [dateError, setDateError] = useState('');
 
   const fetchSales = async () => {
     try {
@@ -21,7 +22,33 @@ export default function Sales() {
 
   useEffect(() => { fetchSales(); }, []);
 
-  const searchByDate = () => { setLoading(true); fetchSales(); };
+  const searchByDate = () => {
+    if (startDate && endDate && startDate > endDate) {
+      setDateError('La fecha Desde debe ser menor o igual a la fecha Hasta');
+      return;
+    }
+    setDateError('');
+    setLoading(true);
+    fetchSales();
+  };
+
+  const handleStartDateChange = (value: string) => {
+    setStartDate(value);
+    if (value && endDate && value > endDate) {
+      setDateError('La fecha Desde debe ser menor o igual a la fecha Hasta');
+    } else {
+      setDateError('');
+    }
+  };
+
+  const handleEndDateChange = (value: string) => {
+    setEndDate(value);
+    if (startDate && value && startDate > value) {
+      setDateError('La fecha Desde debe ser menor o igual a la fecha Hasta');
+    } else {
+      setDateError('');
+    }
+  };
 
   const viewDetail = async (id: number) => {
     try {
@@ -39,10 +66,11 @@ export default function Sales() {
       </div>
       <div className="search-bar">
         <label>Desde:</label>
-        <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+        <input type="date" value={startDate} onChange={e => handleStartDateChange(e.target.value)} />
         <label>Hasta:</label>
-        <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+        <input type="date" value={endDate} onChange={e => handleEndDateChange(e.target.value)} />
         <button className="btn-primary" onClick={searchByDate}>Filtrar</button>
+        {dateError && <span style={{ color: 'var(--danger)', fontSize: '0.85rem', marginLeft: '0.5rem' }}>{dateError}</span>}
       </div>
       <div className="table-container">
         <table className="table">

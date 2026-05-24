@@ -4,6 +4,7 @@ services:
   db:
     image: postgres:15
     container_name: pos_ferreteria_db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: pos_ferreteria
       POSTGRES_USER: postgres
@@ -25,6 +26,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: pos_ferreteria_api
+    restart: unless-stopped
     environment:
       ConnectionStrings__DefaultConnection: "Host=db;Database=pos_ferreteria;Username=postgres;Password=postgres"
       Jwt__Key: "FerreteriaPOS_SuperSecretKey_2024_MustBeLongEnough!"
@@ -42,6 +44,7 @@ services:
       context: ./auth-me-service
       dockerfile: Dockerfile
     container_name: pos_ferreteria_auth_me
+    restart: unless-stopped
     environment:
       DB_HOST: db
       DB_PORT: "5432"
@@ -58,6 +61,7 @@ services:
   frontend:
     image: nginx:alpine
     container_name: pos_ferreteria_frontend
+    restart: unless-stopped
     ports:
       - "8082:80"
     volumes:
