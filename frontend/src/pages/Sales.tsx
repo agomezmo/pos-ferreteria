@@ -5,17 +5,18 @@ export default function Sales() {
   const [sales, setSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<any>(null);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [dateError, setDateError] = useState('');
 
   const fetchSales = async () => {
     try {
       const params: any = { limit: 50 };
-      if (startDate) params.startdate = startDate;
-      if (endDate) params.enddate = endDate;
+      if (startDate) params.startdate = `${startDate}T00:00:00`;
+      if (endDate) params.enddate = `${endDate}T23:59:59`;
       const res = await salesApi.getAll(params);
-      setSales(res.data.sales || []);
+      const data = res.data;
+      setSales(Array.isArray(data) ? data : data.sales || []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
@@ -82,14 +83,14 @@ export default function Sales() {
           <tbody>
             {sales.map(s => (
               <tr key={s.id}>
-                <td>{s.receiptnumber}</td>
-                <td>{s.customer_name || 'Mostrador'}</td>
-                <td>{s.user_name}</td>
+                <td>{s.receiptNumber ?? s.receiptnumber}</td>
+                <td>{s.customerName ?? s.customer_name ?? 'Mostrador'}</td>
+                <td>{s.userName ?? s.user_name}</td>
                 <td>${Number(s.subtotal).toFixed(2)}</td>
                 <td>${Number(s.tax).toFixed(2)}</td>
                 <td><strong>${Number(s.total).toFixed(2)}</strong></td>
-                <td>{s.paymentmethod}</td>
-                <td>{new Date(s.createdat).toLocaleDateString()}</td>
+                <td>{s.paymentMethod ?? s.paymentmethod}</td>
+                <td>{new Date(s.createdAt ?? s.createdat).toLocaleDateString()}</td>
                 <td><button className="btn-sm" onClick={() => viewDetail(s.id)}>Ver</button></td>
               </tr>
             ))}
@@ -101,12 +102,12 @@ export default function Sales() {
       {detail && (
         <div className="modal-overlay" onClick={() => setDetail(null)}>
           <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
-            <h2>Venta: {detail.receiptnumber}</h2>
+            <h2>Venta: {detail.receiptNumber ?? detail.receiptnumber}</h2>
             <div className="detail-grid">
-              <div><strong>Cliente:</strong> {detail.customer_name || 'Mostrador'}</div>
-              <div><strong>Usuario:</strong> {detail.user_name}</div>
-              <div><strong>Fecha:</strong> {new Date(detail.createdat).toLocaleString()}</div>
-              <div><strong>Método Pago:</strong> {detail.paymentmethod}</div>
+              <div><strong>Cliente:</strong> {detail.customerName ?? detail.customer_name ?? 'Mostrador'}</div>
+              <div><strong>Usuario:</strong> {detail.userName ?? detail.user_name}</div>
+              <div><strong>Fecha:</strong> {new Date(detail.createdAt ?? detail.createdat).toLocaleString()}</div>
+              <div><strong>Método Pago:</strong> {detail.paymentMethod ?? detail.paymentmethod}</div>
             </div>
             <h3 style={{marginTop:'1rem',marginBottom:'0.5rem'}}>Artículos</h3>
             <table className="table">
@@ -116,10 +117,10 @@ export default function Sales() {
               <tbody>
                 {(detail.items || []).map((i: any) => (
                   <tr key={i.id}>
-                    <td>{i.product_name}</td>
-                    <td>{i.product_code}</td>
+                    <td>{i.productName ?? i.product_name}</td>
+                    <td>{i.productCode ?? i.product_code}</td>
                     <td>{i.quantity}</td>
-                    <td>${Number(i.unitprice).toFixed(2)}</td>
+                    <td>${Number(i.unitPrice ?? i.unitprice).toFixed(2)}</td>
                     <td>${Number(i.subtotal).toFixed(2)}</td>
                   </tr>
                 ))}

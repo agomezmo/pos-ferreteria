@@ -1,5 +1,6 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { customersApi } from '../services/api';
+import CsvImportModal from '../components/CsvImportModal';
 
 export default function Customers() {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -8,6 +9,35 @@ export default function Customers() {
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<any>({});
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [showImport, setShowImport] = useState(false);
+
+  const handleCsvImport = async (rows: Record<string, string>[]) => {
+    let success = 0;
+    const errors: { row: number; message: string }[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      try {
+        await customersApi.create({
+          documenttype: r.document_type || r.documenttype || 'INE',
+          documentnumber: r.document_number || r.documentnumber || '',
+          fullname: r.full_name || r.fullname || r.name || '',
+          phone: r.phone || '',
+          email: r.email || '',
+          address: r.address || '',
+          rfc: r.rfc || '',
+          razonsocial: r.razonsocial || r.business_name || '',
+          codigopostal: r.codigopostal || r.zip || '',
+          regimenfiscalid: r.regimenfiscalid || r.tax_regime || '',
+          usocfdiid: r.usocfdiid || r.cfdi_usage || '',
+        });
+        success++;
+      } catch (err: any) {
+        errors.push({ row: i + 2, message: err.response?.data?.error?.message || err.message || 'Error' });
+      }
+    }
+    return { success, errors };
+  };
 
   const fetchCustomers = async () => {
     try {
@@ -50,13 +80,27 @@ export default function Customers() {
     }
   };
 
+  const handleDelete = async (id: number) => {
+    try {
+      await customersApi.delete(id);
+      setDeleteConfirm(null);
+      fetchCustomers();
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Error al eliminar');
+      setDeleteConfirm(null);
+    }
+  };
+
   if (loading) return <div className="page-loading">Cargando...</div>;
 
   return (
     <div className="page">
       <div className="page-header">
         <h1>Clientes</h1>
-        <button className="btn-primary" onClick={openCreate}>+ Nuevo Cliente</button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>📥 Importar CSV</button>
+          <button className="btn-primary" onClick={openCreate}>+ Nuevo Cliente</button>
+        </div>
       </div>
       <div className="search-bar">
         <input type="text" placeholder="Buscar por nombre, RFC o documento..." value={search} onChange={e => setSearch(e.target.value)} />
@@ -78,6 +122,7 @@ export default function Customers() {
                 <td>{c.email || '-'}</td>
                 <td className="actions">
                   <button className="btn-sm" onClick={() => openEdit(c)}>Editar</button>
+                  <button className="btn-sm btn-danger" onClick={() => setDeleteConfirm(c.id)}>Eliminar</button>
                 </td>
               </tr>
             ))}
@@ -85,6 +130,19 @@ export default function Customers() {
           </tbody>
         </table>
       </div>
+
+      {deleteConfirm && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
+          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
+            <h2>Confirmar Eliminación</h2>
+            <p>¿Eliminar este cliente? Esta acción no se puede deshacer.</p>
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setDeleteConfirm(null)}>Cancelar</button>
+              <button className="btn-danger" onClick={() => handleDelete(deleteConfirm)}>Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
@@ -155,6 +213,16 @@ export default function Customers() {
           </div>
         </div>
       )}
+      <CsvImportModal
+        show={showImport}
+        onClose={() => { setShowImport(false); fetchCustomers(); }}
+        title="Clientes"
+        sampleCsv="full_name,document_type,document_number,phone,email,address,rfc,razonsocial,zip
+Juan Perez,INE,JUANP950101HDF,555-1234,juan@email.com,Calle Principal 123,JUAP950101XXX,
+Maria Garcia,Pasaporte,MG123456,555-5678,maria@email.com,Avenida Central 456,MAGA850101XXX,Maria Garcia SA de CV,77000
+Carlos Lopez,INE,CARL920202MDF,555-9012,carlos@email.com,Boulevard Norte 789,,,"
+        onImport={handleCsvImport}
+      />
     </div>
   );
 }

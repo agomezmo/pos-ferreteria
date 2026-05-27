@@ -1,5 +1,6 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { patientsApi, customersApi } from '../services/api';
+import CsvImportModal from '../components/CsvImportModal';
 
 export default function Patients() {
   const [patients, setPatients] = useState<any[]>([]);
@@ -9,6 +10,33 @@ export default function Patients() {
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState({ customerid: '', fullname: '', dateofbirth: '', phone: '', email: '', address: '', bloodtype: '', allergies: '', medicalnotes: '' });
   const [error, setError] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [showImport, setShowImport] = useState(false);
+
+  const handleCsvImport = async (rows: Record<string, string>[]) => {
+    let success = 0;
+    const errors: { row: number; message: string }[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      try {
+        await patientsApi.create({
+          fullname: r.full_name || r.fullname || r.name || '',
+          dateofbirth: r.date_of_birth || r.dateofbirth || '',
+          phone: r.phone || '',
+          email: r.email || '',
+          address: r.address || '',
+          bloodtype: r.blood_type || r.bloodtype || '',
+          allergies: r.allergies || '',
+          medicalnotes: r.medical_notes || r.medicalnotes || '',
+          customerid: r.customer_id || r.customerid || null,
+        });
+        success++;
+      } catch (err: any) {
+        errors.push({ row: i + 2, message: err.response?.data?.error?.message || err.message || 'Error' });
+      }
+    }
+    return { success, errors };
+  };
 
   const fetchPatients = async () => {
     try {
@@ -62,13 +90,27 @@ export default function Patients() {
     return age;
   };
 
+  const handleDelete = async (id: number) => {
+    try {
+      await patientsApi.delete(id);
+      setDeleteConfirm(null);
+      fetchPatients();
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Error al eliminar');
+      setDeleteConfirm(null);
+    }
+  };
+
   if (loading) return <div className="page-loading">Cargando...</div>;
 
   return (
     <div className="page">
       <div className="page-header">
         <h1>Pacientes</h1>
-        <button className="btn-primary" onClick={openCreate}>+ Nuevo Paciente</button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>📥 Importar CSV</button>
+          <button className="btn-primary" onClick={openCreate}>+ Nuevo Paciente</button>
+        </div>
       </div>
       <div className="table-container">
         <table className="table">
@@ -85,13 +127,29 @@ export default function Patients() {
                 <td>{p.phone || '-'}</td>
                 <td><span className="badge badge-info">{p.bloodtype || '-'}</span></td>
                 <td>{p.allergies || '-'}</td>
-                <td><button className="btn-sm" onClick={() => openEdit(p)}>Editar</button></td>
+                <td className="actions">
+                  <button className="btn-sm" onClick={() => openEdit(p)}>Editar</button>
+                  <button className="btn-sm btn-danger" onClick={() => setDeleteConfirm(p.id)}>Eliminar</button>
+                </td>
               </tr>
             ))}
             {patients.length === 0 && <tr><td colSpan={6} className="empty">No hay pacientes</td></tr>}
           </tbody>
         </table>
       </div>
+
+      {deleteConfirm && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
+          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
+            <h2>Confirmar Eliminación</h2>
+            <p>¿Eliminar este paciente? Esta acción no se puede deshacer.</p>
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setDeleteConfirm(null)}>Cancelar</button>
+              <button className="btn-danger" onClick={() => handleDelete(deleteConfirm)}>Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
@@ -158,6 +216,16 @@ export default function Patients() {
           </div>
         </div>
       )}
+      <CsvImportModal
+        show={showImport}
+        onClose={() => { setShowImport(false); fetchPatients(); }}
+        title="Pacientes"
+        sampleCsv="full_name,date_of_birth,phone,email,address,blood_type,allergies,medical_notes
+Ana Martinez,1990-05-15,555-1111,ana@email.com,Calle Salud 123,O+,Ninguna,
+Pedro Sanchez,1985-08-22,555-2222,pedro@email.com,Avenida Bienestar 456,A-,Penicilina,Diabetes tipo 2
+Rosa Jimenez,1975-12-03,555-3333,rosa@email.com,Boulevard Vida 789,AB+,Sulfa,Hipertension arterial"
+        onImport={handleCsvImport}
+      />
     </div>
   );
 }

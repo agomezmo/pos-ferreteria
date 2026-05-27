@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { productsApi, customersApi, salesApi, companyApi } from '../services/api';
 
@@ -15,6 +15,13 @@ interface CartItem {
 interface Customer { id: number; fullname: string; rfc: string; }
 
 // Normalize ferretería API fields (camelCase → lowercase) for compatibility
+const normalizeItem = (i: any): any => ({
+  ...i,
+  product_name: i.product_name ?? i.productName ?? i.name,
+  unitprice: i.unitprice ?? i.unitPrice,
+  subtotal: i.subtotal ?? i.unitPrice * i.quantity,
+});
+
 const normalizeProduct = (p: any): any => ({
   id: p.id,
   code: p.code,
@@ -37,6 +44,11 @@ const normalizeProduct = (p: any): any => ({
   supplier_name: p.supplier_name ?? p.supplierName,
 });
 
+const kbdStyle: React.CSSProperties = {
+  background: '#eee', padding: '2px 6px', borderRadius: '4px',
+  border: '1px solid #ccc', fontSize: '0.8em', marginRight: '4px',
+};
+
 export default function NewSale() {
   const navigate = useNavigate();
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -48,7 +60,7 @@ export default function NewSale() {
   const [customerResults, setCustomerResults] = useState<Customer[]>([]);
   const [showCustomerSearch, setShowCustomerSearch] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('Efectivo');
-  const [amountReceived, setAmountReceived] = useState(0);
+  const [amountReceived, setAmountReceived] = useState('');
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -64,7 +76,8 @@ export default function NewSale() {
   const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
   const tax = cart.reduce((sum, item) => sum + (item.subtotal * 0.16), 0);
   const total = subtotal + tax - discount;
-  const change = Math.max(0, amountReceived - total);
+  const receivedNum = parseFloat(amountReceived) || 0;
+  const change = Math.max(0, receivedNum - total);
 
   // Load all products on mount (API does not support server-side search)
   useEffect(() => {
@@ -166,7 +179,7 @@ export default function NewSale() {
           unitprice: item.unitprice,
         })),
         paymentmethod: paymentMethod,
-        amountreceived: amountReceived,
+        amountreceived: receivedNum,
         discount,
         notes,
       });
@@ -187,13 +200,29 @@ export default function NewSale() {
     }
   };
 
+  // F2 keyboard shortcut to execute purchase
+  const checkoutRef = useRef(handleCheckout);
+  checkoutRef.current = handleCheckout;
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'F2') {
+        e.preventDefault();
+        checkoutRef.current();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
   if (success) {
     const sale = saleData?.sale || saleData;
-    const items = sale?.items || cart;
+    const apiItems = sale?.items || [];
+    const items = apiItems.length > 0 ? apiItems.map(normalizeItem) : cart;
     const ticketTotal = sale?.total ?? total;
     const ticketSubtotal = sale?.subtotal ?? subtotal;
     const ticketTax = sale?.tax ?? tax;
     const ticketDiscount = sale?.discount ?? discount;
+    const ticketReceived = sale?.amountreceived ?? receivedNum;
 
     const printTicket = () => {
       const printWindow = window.open('', '_blank');
@@ -236,7 +265,7 @@ export default function NewSale() {
         </table>
         <div class="footer">
           <p>¡Gracias por su compra!</p>
-          <p>${sale?.paymentmethod || paymentMethod} - Recibí: $${Number(sale?.amountreceived || amountReceived).toFixed(2)} ${(sale?.amountreceived || amountReceived) > 0 ? 'Cambio: $' + Number((sale?.amountreceived || amountReceived) - ticketTotal).toFixed(2) : ''}</p>
+          <p>${sale?.paymentmethod || paymentMethod} - Recibí: $${Number(ticketReceived).toFixed(2)} ${ticketReceived > 0 ? 'Cambio: $' + Number(ticketReceived - ticketTotal).toFixed(2) : ''}</p>
         </div>
         </body></html>
       `);
@@ -468,8 +497,8 @@ export default function NewSale() {
                 <div className="form-group">
                   <label>Recibí</label>
                   <input type="number" value={amountReceived} min="0" step="0.01"
-                    onChange={e => setAmountReceived(parseFloat(e.target.value) || 0)} />
-                  {amountReceived > 0 && (
+                    onChange={e => setAmountReceived(e.target.value)} />
+                  {receivedNum > 0 && (
                     <div className="change-display">Cambio: ${change.toFixed(2)}</div>
                   )}
                 </div>
@@ -487,7 +516,7 @@ export default function NewSale() {
               onClick={handleCheckout}
               disabled={loading || cart.length === 0}
             >
-              {loading ? 'Procesando...' : `Cobrar $${total.toFixed(2)}`}
+              {loading ? 'Procesando...' : <><kbd style={kbdStyle}>F2</kbd> Cobrar ${total.toFixed(2)}</>}
             </button>
           </div>
         </div>

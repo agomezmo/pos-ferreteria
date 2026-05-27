@@ -1,0 +1,6 @@
+code,name,description,category_id,supplier_id,purchase_price,sale_price,stock,min_stock,unit,wholesale_price,expiry_date,requires_prescription,requires_tax
+FERR-001,Tornillo 1/2 pulgada,Tornillo galvanizado 1/2 pulgada,1,1,5.50,12.00,100,10,pza,10.00,2026-12-31,FALSE,TRUE
+FERR-002,Martillo 16oz,Martillo de uña 16 onzas,2,,45.00,85.00,50,5,pza,,,FALSE,TRUE
+FERR-003,Cinta metrica 5m,Cinta metrica metalica 5 metros,3,2,25.00,55.00,80,8,pza,,,FALSE,TRUE
+FERR-004,Pintura blanca 1gal,Pintura vinilica blanca 1 galon,4,1,80.00,150.00,30,5,gal,135.00,2026-06-30,FALSE,TRUE
+FERR-005,Taladro inalambrico,Taladro percutor 18V con bateria,5,3,450.00,899.00,15,3,pza,799.00,,FALSE,FALSE

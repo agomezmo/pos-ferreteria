@@ -1,0 +1,4 @@
+full_name,document_type,document_number,phone,email,address,rfc,razonsocial,zip
+Juan Perez,INE,JUANP950101HDF,555-1234,juan@email.com,Calle Principal 123,JUAP950101XXX,,
+Maria Garcia,Pasaporte,MG123456,555-5678,maria@email.com,Avenida Central 456,MAGA850101XXX,Maria Garcia SA de CV,77000
+Carlos Lopez,INE,CARL920202MDF,555-9012,carlos@email.com,Boulevard Norte 789,,,

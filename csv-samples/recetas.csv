@@ -1,0 +1,4 @@
+patient_name,doctor_name,license_number,diagnosis,issue_date,expiry_date,notes,medications
+Ana Martinez,Dr. Lopez,MED12345,Hipertension arterial,2026-05-01,2026-08-01,Tomar con alimentos,"Enalapril 10mg|1 cada 12h|Cada 12 horas|30 dias|60"
+Pedro Sanchez,Dr. Garcia,MED67890,Infeccion respiratoria,2026-05-15,2026-06-15,,"Amoxicilina 500mg|1 cada 8h|Cada 8 horas|7 dias|21;Ibuprofeno 400mg|1 cada 12h|Cada 12 horas|5 dias|10"
+Rosa Jimenez,Dr. Hernandez,MED11111,Diabetes tipo 2,2026-05-20,2026-11-20,No suspender tratamiento,"Metformina 850mg|1 cada 12h|Cada 12 horas|60 dias|120"

@@ -8,6 +8,7 @@ export default function Users() {
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState({ username: '', password: '', email: '', fullname: '', roleid: '' });
   const [error, setError] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -46,6 +47,17 @@ export default function Users() {
     return <span className={`badge ${colors[role] || 'badge-secondary'}`}>{role}</span>;
   };
 
+  const handleDelete = async (id: number) => {
+    try {
+      await usersApi.delete(id);
+      setDeleteConfirm(null);
+      fetchUsers();
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Error al eliminar');
+      setDeleteConfirm(null);
+    }
+  };
+
   if (loading) return <div className="page-loading">Cargando...</div>;
 
   return (
@@ -76,6 +88,7 @@ export default function Users() {
                     setForm({ username: u.username, password: '', email: u.email || '', fullname: u.fullname, roleid: u.roleid });
                     setShowModal(true);
                   }}>Editar</button>
+                  <button className="btn-sm btn-danger" onClick={() => setDeleteConfirm(u.id)}>Eliminar</button>
                 </td>
               </tr>
             ))}
@@ -83,6 +96,19 @@ export default function Users() {
           </tbody>
         </table>
       </div>
+
+      {deleteConfirm && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
+          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
+            <h2>Confirmar Eliminación</h2>
+            <p>¿Eliminar este usuario? Esta acción no se puede deshacer.</p>
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setDeleteConfirm(null)}>Cancelar</button>
+              <button className="btn-danger" onClick={() => handleDelete(deleteConfirm)}>Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, FormEvent } from 'react';
 import { productsApi, categoriesApi, suppliersApi } from '../services/api';
+import CsvImportModal from '../components/CsvImportModal';
 
 interface Product {
   id: number; code: string; barcode: string; name: string; description: string;
@@ -21,6 +22,33 @@ export default function Products() {
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<any>({});
   const [error, setError] = useState('');
+  const [showImport, setShowImport] = useState(false);
+
+  const handleCsvImport = async (rows: Record<string, string>[]) => {
+    let success = 0;
+    const errors: { row: number; message: string }[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      try {
+        await productsApi.create({
+          code: r.code, barcode: r.barcode || '', name: r.name,
+          description: r.description || '', categoryid: r.category_id || r.categoryid || null,
+          supplierid: r.supplier_id || r.supplierid || null,
+          purchaseprice: parseFloat(r.purchase_price || r.purchaseprice) || 0,
+          saleprice: parseFloat(r.sale_price || r.saleprice) || 0,
+          stock: parseInt(r.stock) || 0, minstock: parseInt(r.min_stock || r.minstock) || 0,
+          unit: r.unit || 'pza', wholesale_price: parseFloat(r.wholesale_price || '0') || 0,
+          expiry_date: r.expiry_date || r.expirydate || '',
+          requiresprescription: (r.requires_prescription || '').toUpperCase() === 'TRUE',
+          requires_tax: (r.requires_tax || '').toUpperCase() !== 'FALSE',
+        });
+        success++;
+      } catch (err: any) {
+        errors.push({ row: i + 2, message: err.response?.data?.error?.message || err.message || 'Error' });
+      }
+    }
+    return { success, errors };
+  };
 
   const products = useMemo(() => {
     if (!search.trim()) return allProducts;
@@ -100,7 +128,10 @@ export default function Products() {
     <div className="page">
       <div className="page-header">
         <h1>Productos</h1>
-        <button className="btn-primary" onClick={openCreate}>+ Nuevo Producto</button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>📥 Importar CSV</button>
+          <button className="btn-primary" onClick={openCreate}>+ Nuevo Producto</button>
+        </div>
       </div>
       <div className="search-bar">
         <input type="text" placeholder="Buscar por nombre, código o código de barras..." value={search} onChange={e => setSearch(e.target.value)} />
@@ -225,6 +256,18 @@ export default function Products() {
           </div>
         </div>
       )}
+      <CsvImportModal
+        show={showImport}
+        onClose={() => { setShowImport(false); fetchProducts(); }}
+        title="Productos"
+        sampleCsv="code,name,description,category_id,supplier_id,purchase_price,sale_price,stock,min_stock,unit,wholesale_price,expiry_date,requires_prescription,requires_tax
+FERR-001,Tornillo 1/2 pulgada,Tornillo galvanizado 1/2 pulgada,1,1,5.50,12.00,100,10,pza,10.00,2026-12-31,FALSE,TRUE
+FERR-002,Martillo 16oz,Martillo de uña 16 onzas,2,,45.00,85.00,50,5,pza,,,FALSE,TRUE
+FERR-003,Cinta metrica 5m,Cinta metrica metalica 5 metros,3,2,25.00,55.00,80,8,pza,,,FALSE,TRUE
+FERR-004,Pintura blanca 1gal,Pintura vinilica blanca 1 galon,4,1,80.00,150.00,30,5,gal,135.00,2026-06-30,FALSE,TRUE
+FERR-005,Taladro inalambrico,Taladro percutor 18V con bateria,5,3,450.00,899.00,15,3,pza,799.00,,FALSE,FALSE"
+        onImport={handleCsvImport}
+      />
     </div>
   );
 }

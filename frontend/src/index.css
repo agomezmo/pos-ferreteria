@@ -630,6 +630,21 @@ body {
   .detail-grid { grid-template-columns: 1fr; }
 }
 
+/* ========== CSV IMPORT ========== */
+.import-help { margin-bottom: 1rem; font-size: 0.9rem; color: var(--gray-600); }
+.import-help .btn-link { background: none; border: none; color: var(--primary); cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit; }
+.import-upload { margin-bottom: 1rem; }
+.import-upload input[type="file"] { border: 2px dashed var(--gray-300); padding: 1.5rem; width: 100%; border-radius: 8px; cursor: pointer; }
+.import-upload input[type="file"]:hover { border-color: var(--primary); }
+.import-filename { display: inline-block; margin-top: 0.4rem; font-weight: 600; color: var(--gray-700); }
+.import-preview { margin-bottom: 1rem; }
+.import-preview p { margin-bottom: 0.5rem; font-size: 0.9rem; }
+.import-success { background: var(--success-bg, #d4edda); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+.import-success p { margin: 0; font-size: 1rem; }
+.import-result p { margin-bottom: 0.5rem; }
+
+.table-sm th, .table-sm td { padding: 0.3rem 0.4rem; font-size: 0.8rem; }
+
 /* ========== PRINT ========== */
 @media print {
   .sidebar, .menu-toggle, .btn-logout, .btn-sm, .search-bar { display: none !important; }

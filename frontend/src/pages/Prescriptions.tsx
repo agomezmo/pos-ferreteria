@@ -1,10 +1,39 @@
 import { useState, useEffect } from 'react';
 import { prescriptionsApi } from '../services/api';
+import CsvImportModal from '../components/CsvImportModal';
 
 export default function Prescriptions() {
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<any>(null);
+  const [showImport, setShowImport] = useState(false);
+
+  const handleCsvImport = async (rows: Record<string, string>[]) => {
+    let success = 0;
+    const errors: { row: number; message: string }[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      try {
+        await prescriptionsApi.create({
+          patient_name: r.patient_name || r.patientname || '',
+          doctor_name: r.doctor_name || r.doctorname || '',
+          license_number: r.license_number || r.licensenumber || '',
+          diagnosis: r.diagnosis || '',
+          issuedate: r.issue_date || r.issuedate || new Date().toISOString().split('T')[0],
+          expirydate: r.expiry_date || r.expirydate || '',
+          notes: r.notes || '',
+          items: r.medications ? r.medications.split(';').map((m: string) => {
+            const parts = m.split('|');
+            return { product_name: parts[0] || '', dosage: parts[1] || '', frequency: parts[2] || '', duration: parts[3] || '', quantity: parseInt(parts[4]) || 1 };
+          }) : [],
+        });
+        success++;
+      } catch (err: any) {
+        errors.push({ row: i + 2, message: err.response?.data?.error?.message || err.message || 'Error' });
+      }
+    }
+    return { success, errors };
+  };
 
   const fetchPrescriptions = async () => {
     try {
@@ -29,6 +58,7 @@ export default function Prescriptions() {
     <div className="page">
       <div className="page-header">
         <h1>Recetas Médicas</h1>
+        <button className="btn-secondary" onClick={() => setShowImport(true)}>📥 Importar CSV</button>
       </div>
       <div className="table-container">
         <table className="table">
@@ -89,6 +119,16 @@ export default function Prescriptions() {
           </div>
         </div>
       )}
+      <CsvImportModal
+        show={showImport}
+        onClose={() => { setShowImport(false); fetchPrescriptions(); }}
+        title="Recetas"
+        sampleCsv="patient_name,doctor_name,license_number,diagnosis,issue_date,expiry_date,notes,medications
+Ana Martinez,Dr. Lopez,MED12345,Hipertension arterial,2026-05-01,2026-08-01,Tomar con alimentos,Enalapril 10mg|1 cada 12h|Cada 12 horas|30 dias|60
+Pedro Sanchez,Dr. Garcia,MED67890,Infeccion respiratoria,2026-05-15,2026-06-15,,Amoxicilina 500mg|1 cada 8h|Cada 8 horas|7 dias|21;Ibuprofeno 400mg|1 cada 12h|Cada 12 horas|5 dias|10
+Rosa Jimenez,Dr. Hernandez,MED11111,Diabetes tipo 2,2026-05-20,2026-11-20,No suspender tratamiento,Metformina 850mg|1 cada 12h|Cada 12 horas|60 dias|120"
+        onImport={handleCsvImport}
+      />
     </div>
   );
 }

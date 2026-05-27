@@ -7,6 +7,7 @@ export default function Suppliers() {
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState({ name: '', contactname: '', phone: '', email: '', address: '' });
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
   const fetchSuppliers = async () => {
     try {
@@ -45,6 +46,17 @@ export default function Suppliers() {
     }
   };
 
+  const handleDelete = async (id: number) => {
+    try {
+      await suppliersApi.delete(id);
+      setDeleteConfirm(null);
+      fetchSuppliers();
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Error al eliminar');
+      setDeleteConfirm(null);
+    }
+  };
+
   if (loading) return <div className="page-loading">Cargando...</div>;
 
   return (
@@ -68,6 +80,7 @@ export default function Suppliers() {
                 <td>{s.address || '-'}</td>
                 <td className="actions">
                   <button className="btn-sm" onClick={() => openEdit(s)}>Editar</button>
+                  <button className="btn-sm btn-danger" onClick={() => setDeleteConfirm(s.id)}>Eliminar</button>
                 </td>
               </tr>
             ))}
@@ -75,6 +88,19 @@ export default function Suppliers() {
           </tbody>
         </table>
       </div>
+
+      {deleteConfirm && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
+          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
+            <h2>Confirmar Eliminación</h2>
+            <p>¿Eliminar este proveedor? Esta acción no se puede deshacer.</p>
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setDeleteConfirm(null)}>Cancelar</button>
+              <button className="btn-danger" onClick={() => handleDelete(deleteConfirm)}>Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
