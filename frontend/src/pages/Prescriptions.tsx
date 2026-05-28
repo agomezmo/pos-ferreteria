@@ -37,7 +37,7 @@ export default function Prescriptions() {
 
   const fetchPrescriptions = async () => {
     try {
-      const res = await prescriptionsApi.getAll();
+      const res = await prescriptionsApi.getAll().catch(() => ({ data: [] }));
       setPrescriptions(Array.isArray(res.data) ? res.data : []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }

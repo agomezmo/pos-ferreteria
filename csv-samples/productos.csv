@@ -1,6 +1,121 @@
-code,name,description,category_id,supplier_id,purchase_price,sale_price,stock,min_stock,unit,wholesale_price,expiry_date,requires_prescription,requires_tax
-FERR-001,Tornillo 1/2 pulgada,Tornillo galvanizado 1/2 pulgada,1,1,5.50,12.00,100,10,pza,10.00,2026-12-31,FALSE,TRUE
-FERR-002,Martillo 16oz,Martillo de uña 16 onzas,2,,45.00,85.00,50,5,pza,,,FALSE,TRUE
-FERR-003,Cinta metrica 5m,Cinta metrica metalica 5 metros,3,2,25.00,55.00,80,8,pza,,,FALSE,TRUE
-FERR-004,Pintura blanca 1gal,Pintura vinilica blanca 1 galon,4,1,80.00,150.00,30,5,gal,135.00,2026-06-30,FALSE,TRUE
-FERR-005,Taladro inalambrico,Taladro percutor 18V con bateria,5,3,450.00,899.00,15,3,pza,799.00,,FALSE,FALSE
+code,name,category,purchase_price,sale_price,wholesale_price,stock,min_stock,unit,is_active
+FER-45181,"Básico Manguera 1/2"" x 15m",Herramientas,2610.73,4008.45,3527.44,220,5,MT,1
+FER-45205,Industrial Pintura Esmalte Blanco,Herramientas,4987.13,7890.99,6944.07,20,10,M,1
+FER-78161,"Galvanizado Broca 1/4""",Herramientas,3803.04,6033.83,5309.77,23,3,M,1
+FER-89215,Galvanizado Lija al Agua #180,Jardín,4699.10,7968.47,7012.25,24,2,M,1
+FER-32068,Básico Cerradura para Puerta,Herramientas,1658.53,2803.46,2467.04,37,2,CAJA,0
+FER-94436,Acero Inoxidable Cinta Aislante,Fontanería,4155.17,6520.30,5737.86,258,5,CAJA,1
+FER-96717,PVC Codo 90°,Herramientas,2976.65,4030.38,3546.73,35,2,M,1
+FER-29010,"Profesional Brocha 2""",Construcción,2687.82,4745.61,4176.14,220,3,KG,1
+FER-66319,Pesado Cerradura para Puerta,Automotriz,2110.07,3588.45,3157.84,156,2,MT,1
+FER-43107,"Industrial Tornillo P/Tablaroca 1 5/8"" Caja 100",Construcción,3001.62,4431.29,3899.54,215,10,LT,1
+FER-97684,Premium Válvula de Compuerta,Automotriz,4844.19,8492.31,7473.23,445,15,M,1
+FER-41895,Económico Cable THW #12,Tubería,799.96,1075.97,946.85,163,15,CAJA,1
+FER-47966,"Básico Nivel de Aluminio 24""",Jardín,4343.30,7461.41,6566.04,24,10,LT,1
+FER-40009,Acero Inoxidable Taladro Percutor,Tubería,4133.03,6354.24,5591.73,238,3,LT,1
+FER-75367,PVC Cubeta 19L,Eléctrico,509.69,680.11,598.50,4,10,CAJA,1
+FER-64067,Básico Carretilla 6.5ft³,Seguridad,4072.27,5696.01,5012.49,63,10,M,0
+FER-33258,Reforzado Foco LED 12W,Construcción,829.44,1318.12,1159.95,26,2,CAJA,1
+FER-18029,"Galvanizado Arandela 1/2"" Caja 100",Eléctrico,4066.37,7066.13,6218.19,211,1,CAJA,1
+FER-84702,Económico Candado 40mm,Seguridad,4624.63,8167.97,7187.81,5,3,M,1
+FER-95264,"Premium Arandela 1/2"" Caja 100",Herramientas,3536.13,6354.45,5591.92,45,5,M,1
+FER-66322,Acero Inoxidable Lija al Agua #180,Fontanería,3156.20,5272.34,4639.66,46,2,CAJA,1
+FER-20521,Reforzado Lija al Agua #180,Pinturas,3482.48,5690.89,5007.98,0,5,PZA,1
+FER-83091,"Pesado Rodillo para Pintura 9""",Automotriz,2243.55,3039.01,2674.33,482,1,KG,1
+FER-43008,PVC Cinta Métrica 5m,Eléctrico,1236.03,1953.62,1719.19,8,10,M,1
+FER-90678,PVC Lija al Agua #180,Fontanería,371.24,552.76,486.43,46,3,PZA,1
+FER-85749,Galvanizado Destornillador Plano,Seguridad,4869.92,7459.36,6564.24,185,5,MT,1
+FER-32906,Galvanizado Conector Rápido,Ferretería,104.79,145.56,128.09,43,15,M,1
+FER-26101,Profesional Pintura Esmalte Blanco,Construcción,4757.18,7782.82,6848.88,30,5,LT,1
+FER-43999,Económico Taladro Percutor,Eléctrico,2570.73,4040.83,3555.93,196,1,LT,1
+FER-51652,Económico Pala Cuadrada,Ferretería,1642.24,1998.90,1759.03,4,3,MT,1
+FER-89607,Pesado Taladro Percutor,Jardín,2804.77,3961.14,3485.80,249,3,PZA,1
+FER-61444,Profesional Foco LED 12W,Fontanería,115.25,185.81,163.51,4,2,MT,1
+FER-42344,"Profesional Rodillo para Pintura 9""",Eléctrico,1465.22,1943.62,1710.39,152,10,LT,1
+FER-79780,Acero Inoxidable Pala Cuadrada,Seguridad,1069.40,1565.27,1377.44,387,3,M,1
+FER-85370,Galvanizado Martillo de Uña,Jardín,157.29,235.68,207.40,14,5,M,1
+FER-39215,Básico Candado 40mm,Automotriz,4533.22,7369.75,6485.38,2,15,M,1
+FER-87806,"Reforzado Taquete 1/4"" Caja 50",Herramientas,268.27,415.01,365.21,34,2,M,1
+FER-94213,Premium Pintura Esmalte Blanco,Pinturas,3576.17,5980.23,5262.60,16,3,MT,0
+FER-63956,Industrial Cerradura para Puerta,Construcción,3545.87,4587.07,4036.62,46,5,KG,1
+FER-39248,Acero Inoxidable Martillo de Uña,Pinturas,2616.43,4351.42,3829.25,423,10,KG,1
+FER-69942,Profesional Adaptador Universal,Fontanería,227.99,394.91,347.52,237,10,LT,1
+FER-26069,Pesado Conector Rápido,Fontanería,2189.44,3326.89,2927.66,109,15,M,1
+FER-93387,Reforzado Extensión Eléctrica 5m,Jardín,764.53,1149.36,1011.44,15,3,CAJA,1
+FER-84086,"Pesado Tornillo P/Tablaroca 1 5/8"" Caja 100",Seguridad,390.16,540.90,475.99,24,15,LT,1
+FER-92773,"Galvanizado Nivel de Aluminio 24""",Pinturas,327.13,572.01,503.37,210,5,PZA,1
+FER-98737,Premium Extensión Eléctrica 5m,Herramientas,4169.49,6579.50,5789.96,14,15,LT,1
+FER-61474,"Acero Inoxidable Tubo 1/2""",Construcción,1597.95,2461.47,2166.09,454,5,CAJA,0
+FER-10108,"Pesado Tubo 1/2""",Automotriz,247.99,381.48,335.70,14,5,KG,1
+FER-80507,Profesional Destornillador Plano,Seguridad,1819.20,3235.15,2846.93,344,15,LT,1
+FER-76630,"PVC Tubo 1/2""",Herramientas,1944.09,2600.55,2288.48,15,15,MT,1
+FER-37602,Profesional Multímetro Digital,Automotriz,3883.23,5472.13,4815.47,13,5,LT,0
+FER-64638,Económico Interruptor Sencillo,Seguridad,2966.20,4593.01,4041.85,68,15,PZA,1
+FER-61477,"Acero Inoxidable Tuerca 1/2"" Caja 50",Tubería,2802.72,3414.54,3004.80,2,10,CAJA,1
+FER-24072,Acero Inoxidable Codo 90°,Seguridad,744.31,989.63,870.87,39,15,KG,1
+FER-36896,Profesional Pico de Punta,Automotriz,3125.31,4077.76,3588.43,4,10,MT,1
+FER-77205,"Básico Rodillo para Pintura 9""",Eléctrico,4321.58,7287.64,6413.12,38,1,MT,1
+FER-18264,Premium Sellador de Silicon,Fontanería,549.18,721.80,635.18,6,3,CAJA,1
+FER-43402,Galvanizado Lámpara de Emergencia,Pinturas,4593.08,7649.53,6731.59,4,1,M,1
+FER-91973,"Pesado Brocha 2""",Eléctrico,3874.14,6595.21,5803.78,33,5,LT,0
+FER-26286,"Económico Broca 1/4""",Herramientas,4892.73,8526.63,7503.43,15,1,MT,1
+FER-34036,"Pesado Arandela 1/2"" Caja 100",Ferretería,471.13,704.80,620.22,82,10,M,1
+FER-88428,"PVC Esmeril Angular 4 1/2""",Tubería,3432.23,4401.74,3873.53,323,2,PZA,1
+FER-52698,"Pesado Disco de Corte 7""",Eléctrico,3279.01,5631.16,4955.42,2,10,PZA,1
+FER-37805,"Premium Nivel de Aluminio 24""",Construcción,2310.86,2802.29,2466.02,219,15,CAJA,0
+FER-64795,Económico Sellador de Silicon,Automotriz,2221.37,3740.69,3291.81,123,2,M,0
+FER-97850,"Reforzado Esmeril Angular 4 1/2""",Seguridad,4248.83,6594.17,5802.87,291,1,M,1
+FER-93339,"PVC Clavo 2 1/2"" Caja 1kg",Jardín,1485.39,2575.54,2266.48,482,1,M,1
+FER-69052,Industrial Contacto Polarizado,Tubería,1646.72,2861.02,2517.70,371,15,CAJA,1
+FER-37837,Reforzado Codo 90°,Fontanería,3110.35,4644.51,4087.17,164,15,MT,1
+FER-81470,Económico Destornillador Plano,Tubería,1472.62,2279.29,2005.78,1,5,MT,1
+FER-57440,"Industrial Disco de Corte 7""",Construcción,2871.81,3694.17,3250.87,466,3,M,1
+FER-31938,Reforzado Adaptador Universal,Ferretería,530.26,671.91,591.28,9,10,MT,1
+FER-52997,"Premium Disco de Corte 7""",Pinturas,173.90,248.89,219.02,142,2,LT,0
+FER-98312,"Acero Inoxidable Manguera 1/2"" x 15m",Ferretería,2691.21,3455.62,3040.95,45,15,CAJA,1
+FER-11208,"Galvanizado Tuerca 1/2"" Caja 50",Herramientas,3841.90,5886.52,5180.14,120,1,M,1
+FER-19281,"Galvanizado Manguera 1/2"" x 15m",Automotriz,1366.07,1907.44,1678.55,364,1,CAJA,1
+FER-74396,Pesado Pintura Esmalte Blanco,Ferretería,4542.91,5689.23,5006.52,295,3,PZA,0
+FER-23224,PVC Cable THW #12,Herramientas,1190.57,1713.80,1508.14,34,1,M,1
+FER-55995,Profesional Taladro Percutor,Seguridad,3218.82,4058.76,3571.71,418,5,CAJA,1
+FER-14926,"Reforzado Tuerca 1/2"" Caja 50",Eléctrico,968.36,1535.23,1351.00,1,3,MT,1
+FER-85284,"Básico Broca 1/4""",Automotriz,3405.06,4995.41,4395.96,136,5,CAJA,1
+FER-99569,Profesional Contacto Polarizado,Seguridad,2613.60,4603.32,4050.92,6,2,CAJA,1
+FER-22115,Acero Inoxidable Sierra Caladora,Herramientas,1405.80,1761.18,1549.84,36,15,MT,1
+FER-20141,"Premium Tornillo P/Tablaroca 1 5/8"" Caja 100",Fontanería,3157.29,4428.36,3896.96,30,2,LT,1
+FER-63925,Reforzado Carretilla 6.5ft³,Construcción,131.52,175.57,154.50,31,10,CAJA,1
+FER-78661,Profesional Lámpara de Emergencia,Seguridad,3833.46,6854.09,6031.60,122,2,PZA,1
+FER-59063,Básico Contacto Polarizado,Jardín,2243.90,3336.84,2936.42,38,1,CAJA,1
+FER-45454,Pesado Extensión Eléctrica 5m,Tubería,497.00,702.75,618.42,104,10,M,1
+FER-38276,PVC Taladro Percutor,Seguridad,4356.77,5681.90,5000.07,452,1,CAJA,1
+FER-85416,Económico Sierra Caladora,Construcción,3098.97,4646.12,4088.59,26,5,LT,1
+FER-13366,"Reforzado Nivel de Aluminio 24""",Automotriz,1537.57,1944.43,1711.10,10,2,KG,1
+FER-96711,"Profesional Clavo 2 1/2"" Caja 1kg",Eléctrico,4619.37,8190.45,7207.60,1,10,KG,1
+FER-66187,Reforzado Taladro Percutor,Seguridad,1097.39,1716.69,1510.69,455,5,MT,1
+FER-40245,Galvanizado Cinta Aislante,Tubería,1902.81,2353.06,2070.69,222,5,LT,1
+FER-17072,Premium Foco LED 12W,Eléctrico,4972.80,7700.76,6776.67,238,2,PZA,1
+FER-45564,"Pesado Taquete 1/4"" Caja 50",Jardín,1959.98,3206.90,2822.07,25,5,KG,1
+FER-13420,"PVC Tornillo P/Tablaroca 1 5/8"" Caja 100",Jardín,1556.54,2040.43,1795.58,159,10,KG,1
+FER-32184,Industrial Válvula de Compuerta,Jardín,1384.57,1882.03,1656.19,62,3,KG,1
+FER-36044,Acero Inoxidable Válvula de Compuerta,Fontanería,3472.10,5193.63,4570.39,26,5,CAJA,1
+FER-86506,Reforzado Pintura Esmalte Blanco,Fontanería,4544.06,7811.63,6874.23,133,10,M,1
+FER-88042,Económico Contacto Polarizado,Automotriz,517.86,719.15,632.85,27,3,LT,1
+FER-38014,Industrial Conector Rápido,Fontanería,114.26,190.49,167.63,16,2,CAJA,1
+FER-50900,Industrial Cubeta 19L,Ferretería,3042.36,5380.24,4734.61,47,15,M,1
+FER-77981,"Pesado Llave Inglesa 10""",Jardín,305.81,479.17,421.67,22,15,PZA,1
+FER-40883,PVC Conector Rápido,Construcción,2178.21,2911.58,2562.19,207,2,M,1
+FER-97766,"Pesado Manguera 1/2"" x 15m",Automotriz,3019.39,3939.52,3466.78,26,3,PZA,1
+FER-64322,Básico Pintura Esmalte Blanco,Eléctrico,3482.75,4925.06,4334.05,31,3,PZA,1
+FER-42666,Industrial Lija al Agua #180,Herramientas,928.73,1287.14,1132.68,43,1,LT,1
+FER-17933,Económico Martillo de Uña,Fontanería,3766.75,5349.60,4707.65,241,15,PZA,1
+FER-51942,"Económico Llave Inglesa 10""",Tubería,3896.95,6929.19,6097.69,5,5,KG,1
+FER-23180,Galvanizado Pico de Punta,Automotriz,1534.39,2532.28,2228.41,5,15,CAJA,1
+FER-52583,Acero Inoxidable Cerradura para Puerta,Ferretería,3143.13,4247.49,3737.79,1,2,M,1
+FER-70452,Pesado Cinta Aislante,Automotriz,4138.03,6338.59,5577.96,20,5,M,1
+FER-57293,"Reforzado Manguera 1/2"" x 15m",Ferretería,871.14,1219.37,1073.05,224,3,KG,1
+FER-85871,Premium Cinta Métrica 5m,Jardín,4895.92,6147.01,5409.37,137,5,MT,1
+FER-11415,Acero Inoxidable Sellador de Silicon,Fontanería,3788.68,6038.39,5313.78,5,5,LT,1
+FER-43166,"Económico Tornillo P/Tablaroca 1 5/8"" Caja 100",Jardín,4284.96,6032.23,5308.36,316,2,CAJA,1
+FER-73400,Acero Inoxidable Candado 40mm,Seguridad,2747.13,3746.93,3297.30,20,3,LT,0
+FER-40838,Básico Interruptor Sencillo,Pinturas,4425.68,6642.84,5845.70,77,2,LT,1
+FER-77401,"Premium Manguera 1/2"" x 15m",Eléctrico,3472.97,6192.10,5449.05,140,10,KG,1

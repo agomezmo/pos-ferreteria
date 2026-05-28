@@ -12,8 +12,6 @@ import Reports from './pages/Reports';
 import CashRegister from './pages/CashRegister';
 import Returns from './pages/Returns';
 import Expenses from './pages/Expenses';
-import Patients from './pages/Patients';
-import Prescriptions from './pages/Prescriptions';
 import Alerts from './pages/Alerts';
 import Inventory from './pages/Inventory';
 import Company from './pages/Company';
@@ -43,8 +41,6 @@ export default function App() {
         <Route path="cash-register" element={<CashRegister />} />
         <Route path="returns" element={<Returns />} />
         <Route path="expenses" element={<Expenses />} />
-        <Route path="patients" element={<Patients />} />
-        <Route path="prescriptions" element={<Prescriptions />} />
         <Route path="alerts" element={<Alerts />} />
         <Route path="inventory" element={<Inventory />} />
         <Route path="company" element={<Company />} />

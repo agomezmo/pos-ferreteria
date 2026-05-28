@@ -115,11 +115,11 @@ export default function Customers() {
           <tbody>
             {customers.map(c => (
               <tr key={c.id}>
-                <td>{c.fullname}</td>
-                <td>{c.documenttype} {c.documentnumber}</td>
-                <td>{c.rfc || '-'}</td>
-                <td>{c.phone || '-'}</td>
-                <td>{c.email || '-'}</td>
+                <td>{c.fullName ?? c.fullname ?? c.name}</td>
+                <td>{(c.documentType ?? c.documenttype)} {(c.documentNumber ?? c.documentnumber)}</td>
+                <td>{c.rfc ?? '-'}</td>
+                <td>{c.phone ?? '-'}</td>
+                <td>{c.email ?? '-'}</td>
                 <td className="actions">
                   <button className="btn-sm" onClick={() => openEdit(c)}>Editar</button>
                   <button className="btn-sm btn-danger" onClick={() => setDeleteConfirm(c.id)}>Eliminar</button>

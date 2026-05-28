@@ -74,14 +74,6 @@ export default function Layout() {
             onClick={() => setSidebarOpen(false)}>
             <span className="nav-icon">👥</span> Clientes
           </NavLink>
-          <NavLink to="/patients" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
-            onClick={() => setSidebarOpen(false)}>
-            <span className="nav-icon">🏥</span> Pacientes
-          </NavLink>
-          <NavLink to="/prescriptions" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
-            onClick={() => setSidebarOpen(false)}>
-            <span className="nav-icon">📝</span> Recetas
-          </NavLink>
 
           <div className="nav-section">ADMINISTRACIÓN</div>
           <NavLink to="/expenses" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}

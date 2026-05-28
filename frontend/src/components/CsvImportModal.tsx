@@ -88,12 +88,19 @@ export default function CsvImportModal({ show, onClose, title, sampleCsv, onImpo
   const handleImport = async () => {
     if (!preview || preview.length === 0) return;
     setImporting(true);
-    setResult(null);
+      setResult(null);
     try {
       const res = await onImport(preview);
       setResult(res);
     } catch (err: any) {
-      setResult({ success: 0, errors: [{ row: 0, message: err.message || 'Error inesperado' }] });
+      const status = err.response?.status;
+      const detail = err.response?.data?.error?.message || err.response?.data?.title || '';
+      let msg = err.message || 'Error inesperado';
+      if (status === 404) msg = `Error 404: El endpoint no existe en este sistema`;
+      else if (status === 401) msg = 'Error 401: Sesión expirada, recarga la página';
+      else if (status === 400) msg = `Error 400: Datos inválidos — ${detail || msg}`;
+      else if (status) msg = `Error ${status}: ${detail || msg}`;
+      setResult({ success: 0, errors: [{ row: 0, message: msg }] });
     } finally {
       setImporting(false);
     }

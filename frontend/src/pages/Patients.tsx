@@ -41,7 +41,7 @@ export default function Patients() {
   const fetchPatients = async () => {
     try {
       const [patRes, custRes] = await Promise.all([
-        patientsApi.getAll(),
+        patientsApi.getAll().catch(() => ({ data: [] })),
         customersApi.getAll().catch(() => ({ data: [] })),
       ]);
       setPatients(Array.isArray(patRes.data) ? patRes.data : []);
@@ -162,7 +162,7 @@ export default function Patients() {
                   <label>Cliente Asociado</label>
                   <select value={form.customerid} onChange={e => setForm({...form, customerid: e.target.value})}>
                     <option value="">Sin asociación</option>
-                    {customers.map(c => <option key={c.id} value={c.id}>{c.fullname}</option>)}
+                    {customers.map(c => <option key={c.id} value={c.id}>{c.fullName ?? c.fullname}</option>)}
                   </select>
                 </div>
                 <div className="form-group">
