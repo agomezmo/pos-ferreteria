@@ -1,104 +1,150 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using POS.API.DTOs;
 using POS.API.Data;
+using POS.API.Models;
 
 namespace POS.API.Services;
 
 public class CashRegisterService
 {
-	private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
 
-	public CashRegisterService(AppDbContext context)
-	{
-		_context = context;
-	}
+    public CashRegisterService(AppDbContext context)
+    {
+        _context = context;
+    }
 
-	[AsyncStateMachine(typeof(_003CGetCashRegistersAsync_003Ed__2))]
-	public System.Threading.Tasks.Task<List<CashRegisterDTO>> GetCashRegistersAsync()
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetCashRegistersAsync_003Ed__2 _003CGetCashRegistersAsync_003Ed__ = default(_003CGetCashRegistersAsync_003Ed__2);
-		_003CGetCashRegistersAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<List<CashRegisterDTO>>.Create();
-		_003CGetCashRegistersAsync_003Ed__._003C_003E4__this = this;
-		_003CGetCashRegistersAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetCashRegistersAsync_003Ed__._003C_003Et__builder.Start<_003CGetCashRegistersAsync_003Ed__2>(ref _003CGetCashRegistersAsync_003Ed__);
-		return _003CGetCashRegistersAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+    public async Task<List<CashRegisterDTO>> GetCashRegistersAsync()
+    {
+        return await _context.CashRegisters
+            .Select(cr => new CashRegisterDTO
+            {
+                Id = cr.Id,
+                Name = cr.Name,
+                Location = cr.Location,
+                IsActive = cr.IsActive,
+                CreatedAt = cr.CreatedAt
+            })
+            .ToListAsync();
+    }
 
-	[AsyncStateMachine(typeof(_003CCreateCashRegisterAsync_003Ed__3))]
-	public System.Threading.Tasks.Task<CashRegisterDTO> CreateCashRegisterAsync(CreateCashRegisterRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CCreateCashRegisterAsync_003Ed__3 _003CCreateCashRegisterAsync_003Ed__ = default(_003CCreateCashRegisterAsync_003Ed__3);
-		_003CCreateCashRegisterAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<CashRegisterDTO>.Create();
-		_003CCreateCashRegisterAsync_003Ed__._003C_003E4__this = this;
-		_003CCreateCashRegisterAsync_003Ed__.request = request;
-		_003CCreateCashRegisterAsync_003Ed__._003C_003E1__state = -1;
-		_003CCreateCashRegisterAsync_003Ed__._003C_003Et__builder.Start<_003CCreateCashRegisterAsync_003Ed__3>(ref _003CCreateCashRegisterAsync_003Ed__);
-		return _003CCreateCashRegisterAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+    public async Task<CashRegisterDTO> CreateCashRegisterAsync(CreateCashRegisterRequest request)
+    {
+        var entity = new CashRegister
+        {
+            Name = request.Name,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _context.CashRegisters.Add(entity);
+        await _context.SaveChangesAsync();
 
-	[AsyncStateMachine(typeof(_003COpenSessionAsync_003Ed__4))]
-	public System.Threading.Tasks.Task<CashRegisterSessionDTO?> OpenSessionAsync(OpenSessionRequest request, int userId)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003COpenSessionAsync_003Ed__4 _003COpenSessionAsync_003Ed__ = default(_003COpenSessionAsync_003Ed__4);
-		_003COpenSessionAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<CashRegisterSessionDTO>.Create();
-		_003COpenSessionAsync_003Ed__._003C_003E4__this = this;
-		_003COpenSessionAsync_003Ed__.request = request;
-		_003COpenSessionAsync_003Ed__.userId = userId;
-		_003COpenSessionAsync_003Ed__._003C_003E1__state = -1;
-		_003COpenSessionAsync_003Ed__._003C_003Et__builder.Start<_003COpenSessionAsync_003Ed__4>(ref _003COpenSessionAsync_003Ed__);
-		return _003COpenSessionAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        return new CashRegisterDTO
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            IsActive = entity.IsActive,
+            CreatedAt = entity.CreatedAt
+        };
+    }
 
-	[AsyncStateMachine(typeof(_003CCloseSessionAsync_003Ed__5))]
-	public System.Threading.Tasks.Task<CashRegisterSessionDTO?> CloseSessionAsync(int sessionId, CloseSessionRequest request, int userId)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CCloseSessionAsync_003Ed__5 _003CCloseSessionAsync_003Ed__ = default(_003CCloseSessionAsync_003Ed__5);
-		_003CCloseSessionAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<CashRegisterSessionDTO>.Create();
-		_003CCloseSessionAsync_003Ed__._003C_003E4__this = this;
-		_003CCloseSessionAsync_003Ed__.sessionId = sessionId;
-		_003CCloseSessionAsync_003Ed__.request = request;
-		_003CCloseSessionAsync_003Ed__._003C_003E1__state = -1;
-		_003CCloseSessionAsync_003Ed__._003C_003Et__builder.Start<_003CCloseSessionAsync_003Ed__5>(ref _003CCloseSessionAsync_003Ed__);
-		return _003CCloseSessionAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+    public async Task<CashRegisterSessionDTO?> OpenSessionAsync(OpenSessionRequest request, int userId)
+    {
+        var activeSession = await _context.CashRegisterSessions
+            .FirstOrDefaultAsync(s => s.CashRegisterId == request.CashRegisterId && s.IsActive);
+        if (activeSession != null) return null;
 
-	[AsyncStateMachine(typeof(_003CGetCurrentSessionAsync_003Ed__6))]
-	public System.Threading.Tasks.Task<CashRegisterSessionDTO?> GetCurrentSessionAsync(int cashRegisterId)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetCurrentSessionAsync_003Ed__6 _003CGetCurrentSessionAsync_003Ed__ = default(_003CGetCurrentSessionAsync_003Ed__6);
-		_003CGetCurrentSessionAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<CashRegisterSessionDTO>.Create();
-		_003CGetCurrentSessionAsync_003Ed__._003C_003E4__this = this;
-		_003CGetCurrentSessionAsync_003Ed__.cashRegisterId = cashRegisterId;
-		_003CGetCurrentSessionAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetCurrentSessionAsync_003Ed__._003C_003Et__builder.Start<_003CGetCurrentSessionAsync_003Ed__6>(ref _003CGetCurrentSessionAsync_003Ed__);
-		return _003CGetCurrentSessionAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        var session = new CashRegisterSession
+        {
+            CashRegisterId = request.CashRegisterId,
+            UserId = userId,
+            OpeningAmount = request.InitialAmount ?? 0,
+            OpenedAt = DateTime.UtcNow,
+            Status = "Open",
+            IsActive = true
+        };
+        _context.CashRegisterSessions.Add(session);
+        await _context.SaveChangesAsync();
 
-	[AsyncStateMachine(typeof(_003CGetSessionsAsync_003Ed__7))]
-	public System.Threading.Tasks.Task<List<CashRegisterSessionDTO>> GetSessionsAsync(System.DateTime? startDate = null, System.DateTime? endDate = null)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetSessionsAsync_003Ed__7 _003CGetSessionsAsync_003Ed__ = default(_003CGetSessionsAsync_003Ed__7);
-		_003CGetSessionsAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<List<CashRegisterSessionDTO>>.Create();
-		_003CGetSessionsAsync_003Ed__._003C_003E4__this = this;
-		_003CGetSessionsAsync_003Ed__.startDate = startDate;
-		_003CGetSessionsAsync_003Ed__.endDate = endDate;
-		_003CGetSessionsAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetSessionsAsync_003Ed__._003C_003Et__builder.Start<_003CGetSessionsAsync_003Ed__7>(ref _003CGetSessionsAsync_003Ed__);
-		return _003CGetSessionsAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        return new CashRegisterSessionDTO
+        {
+            Id = session.Id,
+            CashRegisterId = session.CashRegisterId,
+            UserId = session.UserId,
+            OpeningAmount = session.OpeningAmount,
+            OpenedAt = session.OpenedAt,
+            Status = session.Status
+        };
+    }
+
+    public async Task<CashRegisterSessionDTO?> CloseSessionAsync(int sessionId, CloseSessionRequest request, int userId)
+    {
+        var session = await _context.CashRegisterSessions
+            .FirstOrDefaultAsync(s => s.Id == sessionId && s.IsActive);
+        if (session == null) return null;
+
+        session.ClosedAt = DateTime.UtcNow;
+        session.ClosingAmount = request.ClosingAmount;
+        session.IsActive = false;
+        session.Status = "Closed";
+        await _context.SaveChangesAsync();
+
+        return new CashRegisterSessionDTO
+        {
+            Id = session.Id,
+            CashRegisterId = session.CashRegisterId,
+            UserId = session.UserId,
+            OpeningAmount = session.OpeningAmount,
+            ClosingAmount = session.ClosingAmount,
+            OpenedAt = session.OpenedAt,
+            ClosedAt = session.ClosedAt,
+            Status = session.Status
+        };
+    }
+
+    public async Task<CashRegisterSessionDTO?> GetCurrentSessionAsync(int cashRegisterId)
+    {
+        var session = await _context.CashRegisterSessions
+            .Where(s => s.CashRegisterId == cashRegisterId && s.IsActive)
+            .Select(s => new CashRegisterSessionDTO
+            {
+                Id = s.Id,
+                CashRegisterId = s.CashRegisterId,
+                UserId = s.UserId,
+                OpeningAmount = s.OpeningAmount,
+                OpenedAt = s.OpenedAt,
+                Status = s.Status
+            })
+            .FirstOrDefaultAsync();
+
+        return session;
+    }
+
+    public async Task<List<CashRegisterSessionDTO>> GetSessionsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var query = _context.CashRegisterSessions.AsQueryable();
+
+        if (startDate.HasValue)
+            query = query.Where(s => s.OpenedAt >= startDate.Value);
+        if (endDate.HasValue)
+            query = query.Where(s => s.OpenedAt <= endDate.Value);
+
+        return await query
+            .Select(s => new CashRegisterSessionDTO
+            {
+                Id = s.Id,
+                CashRegisterId = s.CashRegisterId,
+                UserId = s.UserId,
+                OpeningAmount = s.OpeningAmount,
+                ClosingAmount = s.ClosingAmount,
+                OpenedAt = s.OpenedAt,
+                ClosedAt = s.ClosedAt,
+                Status = s.Status
+            })
+            .ToListAsync();
+    }
 }

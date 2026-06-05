@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using POS.API.DTOs;
 using POS.API.Data;
 
@@ -13,55 +14,76 @@ namespace POS.API.Controllers;
 [Authorize]
 public class SettingsController : ControllerBase
 {
-	private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
 
-	public SettingsController(AppDbContext context)
-	{
-		_context = context;
-	}
+    public SettingsController(AppDbContext context)
+    {
+        _context = context;
+    }
 
-	[AsyncStateMachine(typeof(_003CGetSettings_003Ed__2))]
-	[HttpGet]
-	public System.Threading.Tasks.Task<ActionResult<List<SystemSettingDTO>>> GetSettings()
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetSettings_003Ed__2 _003CGetSettings_003Ed__ = default(_003CGetSettings_003Ed__2);
-		_003CGetSettings_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<List<SystemSettingDTO>>>.Create();
-		_003CGetSettings_003Ed__._003C_003E4__this = this;
-		_003CGetSettings_003Ed__._003C_003E1__state = -1;
-		_003CGetSettings_003Ed__._003C_003Et__builder.Start<_003CGetSettings_003Ed__2>(ref _003CGetSettings_003Ed__);
-		return _003CGetSettings_003Ed__._003C_003Et__builder.get_Task();
-	}
+    [HttpGet]
+    public async Task<ActionResult<List<SystemSettingDTO>>> GetSettings()
+    {
+        var settings = await _context.SystemSettings
+            .Select(s => new SystemSettingDTO
+            {
+                Key = s.Key,
+                Value = s.Value,
+                Description = s.Description
+            })
+            .ToListAsync();
 
-	[AsyncStateMachine(typeof(_003CGetSetting_003Ed__3))]
-	[HttpGet("{key}")]
-	public System.Threading.Tasks.Task<ActionResult<SystemSettingDTO>> GetSetting(string key)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetSetting_003Ed__3 _003CGetSetting_003Ed__ = default(_003CGetSetting_003Ed__3);
-		_003CGetSetting_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<SystemSettingDTO>>.Create();
-		_003CGetSetting_003Ed__._003C_003E4__this = this;
-		_003CGetSetting_003Ed__.key = key;
-		_003CGetSetting_003Ed__._003C_003E1__state = -1;
-		_003CGetSetting_003Ed__._003C_003Et__builder.Start<_003CGetSetting_003Ed__3>(ref _003CGetSetting_003Ed__);
-		return _003CGetSetting_003Ed__._003C_003Et__builder.get_Task();
-	}
+        return Ok(settings);
+    }
 
-	[AsyncStateMachine(typeof(_003CUpdateSetting_003Ed__4))]
-	[HttpPut("{key}")]
-	public System.Threading.Tasks.Task<ActionResult<SystemSettingDTO>> UpdateSetting(string key, [FromBody] UpdateSystemSettingRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CUpdateSetting_003Ed__4 _003CUpdateSetting_003Ed__ = default(_003CUpdateSetting_003Ed__4);
-		_003CUpdateSetting_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<SystemSettingDTO>>.Create();
-		_003CUpdateSetting_003Ed__._003C_003E4__this = this;
-		_003CUpdateSetting_003Ed__.key = key;
-		_003CUpdateSetting_003Ed__.request = request;
-		_003CUpdateSetting_003Ed__._003C_003E1__state = -1;
-		_003CUpdateSetting_003Ed__._003C_003Et__builder.Start<_003CUpdateSetting_003Ed__4>(ref _003CUpdateSetting_003Ed__);
-		return _003CUpdateSetting_003Ed__._003C_003Et__builder.get_Task();
-	}
+    [HttpGet("{key}")]
+    public async Task<ActionResult<SystemSettingDTO>> GetSetting(string key)
+    {
+        var setting = await _context.SystemSettings
+            .Where(s => s.Key == key)
+            .Select(s => new SystemSettingDTO
+            {
+                Key = s.Key,
+                Value = s.Value,
+                Description = s.Description
+            })
+            .FirstOrDefaultAsync();
+
+        if (setting == null)
+            return NotFound(new { error = "Configuración no encontrada" });
+        return Ok(setting);
+    }
+
+    [HttpPut("{key}")]
+    public async Task<ActionResult<SystemSettingDTO>> UpdateSetting(string key, [FromBody] UpdateSystemSettingRequest request)
+    {
+        var setting = await _context.SystemSettings
+            .FirstOrDefaultAsync(s => s.Key == key);
+
+        if (setting == null)
+        {
+            setting = new POS.API.Models.SystemSetting
+            {
+                Key = key,
+                Value = request.Value,
+                Description = request.Description
+            };
+            _context.SystemSettings.Add(setting);
+        }
+        else
+        {
+            setting.Value = request.Value;
+            if (request.Description != null)
+                setting.Description = request.Description;
+        }
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new SystemSettingDTO
+        {
+            Key = setting.Key,
+            Value = setting.Value,
+            Description = setting.Description
+        });
+    }
 }

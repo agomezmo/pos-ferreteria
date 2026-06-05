@@ -1,75 +1,150 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using POS.API.DTOs;
 using POS.API.Data;
+using POS.API.Models;
 
 namespace POS.API.Services;
 
 public class SaleService
 {
-	private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
 
-	public SaleService(AppDbContext context)
-	{
-		_context = context;
-	}
+    public SaleService(AppDbContext context)
+    {
+        _context = context;
+    }
 
-	[AsyncStateMachine(typeof(_003CCreateSaleAsync_003Ed__2))]
-	public System.Threading.Tasks.Task<SaleDTO> CreateSaleAsync(CreateSaleRequest request, int userId)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CCreateSaleAsync_003Ed__2 _003CCreateSaleAsync_003Ed__ = default(_003CCreateSaleAsync_003Ed__2);
-		_003CCreateSaleAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<SaleDTO>.Create();
-		_003CCreateSaleAsync_003Ed__._003C_003E4__this = this;
-		_003CCreateSaleAsync_003Ed__.request = request;
-		_003CCreateSaleAsync_003Ed__.userId = userId;
-		_003CCreateSaleAsync_003Ed__._003C_003E1__state = -1;
-		_003CCreateSaleAsync_003Ed__._003C_003Et__builder.Start<_003CCreateSaleAsync_003Ed__2>(ref _003CCreateSaleAsync_003Ed__);
-		return _003CCreateSaleAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+    public async Task<SaleDTO> CreateSaleAsync(CreateSaleRequest request, int userId)
+    {
+        var receiptNumber = await GenerateReceiptNumberAsync();
 
-	[AsyncStateMachine(typeof(_003CGetSaleByIdAsync_003Ed__3))]
-	public System.Threading.Tasks.Task<SaleDTO?> GetSaleByIdAsync(int id)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetSaleByIdAsync_003Ed__3 _003CGetSaleByIdAsync_003Ed__ = default(_003CGetSaleByIdAsync_003Ed__3);
-		_003CGetSaleByIdAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<SaleDTO>.Create();
-		_003CGetSaleByIdAsync_003Ed__._003C_003E4__this = this;
-		_003CGetSaleByIdAsync_003Ed__.id = id;
-		_003CGetSaleByIdAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetSaleByIdAsync_003Ed__._003C_003Et__builder.Start<_003CGetSaleByIdAsync_003Ed__3>(ref _003CGetSaleByIdAsync_003Ed__);
-		return _003CGetSaleByIdAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        var sale = new Sale
+        {
+            ReceiptNumber = receiptNumber,
+            CustomerId = request.CustomerId,
+            UserId = userId,
+            CashRegisterSessionId = request.CashRegisterSessionId,
+            Subtotal = request.Items.Sum(i => i.Quantity * i.UnitPrice),
+            Discount = request.Discount ?? 0,
+            Tax = request.Tax ?? 0,
+            Total = request.Items.Sum(i => i.Quantity * i.UnitPrice) - (request.Discount ?? 0) + (request.Tax ?? 0),
+            PaymentMethod = request.PaymentMethod,
+            Status = "completed",
+            CreatedAt = DateTime.UtcNow
+        };
+        _context.Sales.Add(sale);
+        await _context.SaveChangesAsync();
 
-	[AsyncStateMachine(typeof(_003CGetSalesAsync_003Ed__4))]
-	public System.Threading.Tasks.Task<List<SaleListDTO>> GetSalesAsync(System.DateTime? startDate = null, System.DateTime? endDate = null)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetSalesAsync_003Ed__4 _003CGetSalesAsync_003Ed__ = default(_003CGetSalesAsync_003Ed__4);
-		_003CGetSalesAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<List<SaleListDTO>>.Create();
-		_003CGetSalesAsync_003Ed__._003C_003E4__this = this;
-		_003CGetSalesAsync_003Ed__.startDate = startDate;
-		_003CGetSalesAsync_003Ed__.endDate = endDate;
-		_003CGetSalesAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetSalesAsync_003Ed__._003C_003Et__builder.Start<_003CGetSalesAsync_003Ed__4>(ref _003CGetSalesAsync_003Ed__);
-		return _003CGetSalesAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        foreach (var item in request.Items)
+        {
+            var saleItem = new SaleItem
+            {
+                SaleId = sale.Id,
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+                UnitPrice = item.UnitPrice,
+                TotalPrice = item.Quantity * item.UnitPrice
+            };
+            _context.SaleItems.Add(saleItem);
 
-	[AsyncStateMachine(typeof(_003CGenerateReceiptNumberAsync_003Ed__5))]
-	private System.Threading.Tasks.Task<string> GenerateReceiptNumberAsync()
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGenerateReceiptNumberAsync_003Ed__5 _003CGenerateReceiptNumberAsync_003Ed__ = default(_003CGenerateReceiptNumberAsync_003Ed__5);
-		_003CGenerateReceiptNumberAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<string>.Create();
-		_003CGenerateReceiptNumberAsync_003Ed__._003C_003E4__this = this;
-		_003CGenerateReceiptNumberAsync_003Ed__._003C_003E1__state = -1;
-		_003CGenerateReceiptNumberAsync_003Ed__._003C_003Et__builder.Start<_003CGenerateReceiptNumberAsync_003Ed__5>(ref _003CGenerateReceiptNumberAsync_003Ed__);
-		return _003CGenerateReceiptNumberAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+            var product = await _context.Products.FindAsync(item.ProductId);
+            if (product != null)
+                product.Stock -= item.Quantity;
+        }
+        await _context.SaveChangesAsync();
+
+        if (request.Payments != null)
+        {
+            foreach (var p in request.Payments)
+            {
+                _context.Payments.Add(new Payment
+                {
+                    SaleId = sale.Id,
+                    Amount = p.Amount,
+                    PaymentMethod = p.PaymentMethod,
+                    Reference = p.Reference,
+                    PaidAt = DateTime.UtcNow
+                });
+            }
+            await _context.SaveChangesAsync();
+        }
+
+        return (await GetSaleByIdAsync(sale.Id))!;
+    }
+
+    public async Task<SaleDTO?> GetSaleByIdAsync(int id)
+    {
+        return await _context.Sales
+            .Include(s => s.Customer)
+            .Include(s => s.User)
+            .Include(s => s.Items).ThenInclude(si => si.Product)
+            .Include(s => s.Payments)
+            .Where(s => s.Id == id)
+            .Select(s => new SaleDTO
+            {
+                Id = s.Id,
+                ReceiptNumber = s.ReceiptNumber,
+                CustomerId = s.CustomerId,
+                CustomerName = s.Customer != null ? s.Customer.FullName : null,
+                UserName = s.User != null ? s.User.FullName : "",
+                Subtotal = s.Subtotal,
+                Discount = s.Discount,
+                Tax = s.Tax,
+                Total = s.Total,
+                PaymentMethod = s.PaymentMethod,
+                Status = s.Status,
+                CreatedAt = s.CreatedAt,
+                Items = s.Items.Select(si => new SaleItemDTO
+                {
+                    Id = si.Id,
+                    ProductId = si.ProductId,
+                    ProductName = si.Product != null ? si.Product.Name : null,
+                    Quantity = si.Quantity,
+                    UnitPrice = si.UnitPrice,
+                    TotalPrice = si.TotalPrice
+                }).ToList()
+            })
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<List<SaleListDTO>> GetSalesAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var query = _context.Sales
+            .Include(s => s.Customer)
+            .Include(s => s.User)
+            .AsQueryable();
+
+        if (startDate.HasValue)
+            query = query.Where(s => s.CreatedAt >= startDate.Value);
+        if (endDate.HasValue)
+            query = query.Where(s => s.CreatedAt <= endDate.Value.AddDays(1));
+
+        return await query
+            .OrderByDescending(s => s.CreatedAt)
+            .Select(s => new SaleListDTO
+            {
+                Id = s.Id,
+                ReceiptNumber = s.ReceiptNumber,
+                CustomerName = s.Customer != null ? s.Customer.FullName : null,
+                UserName = s.User != null ? s.User.FullName : "",
+                Total = s.Total,
+                PaymentMethod = s.PaymentMethod,
+                SaleType = s.SaleType ?? "Cash",
+                CreatedAt = s.CreatedAt
+            })
+            .ToListAsync();
+    }
+
+    private async Task<string> GenerateReceiptNumberAsync()
+    {
+        var today = DateTime.UtcNow.ToString("yyyyMMdd");
+        var count = await _context.Sales
+            .CountAsync(s => s.CreatedAt.Date == DateTime.UtcNow.Date);
+
+        return $"R-{today}-{count + 1:D4}";
+    }
 }

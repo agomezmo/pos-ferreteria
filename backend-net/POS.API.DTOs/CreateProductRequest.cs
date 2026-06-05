@@ -1,211 +1,32 @@
-using System.Runtime.CompilerServices;
-
 namespace POS.API.DTOs;
 
 public class CreateProductRequest
 {
-	public string Code
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CCode_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CCode_003Ek__BackingField = value;
-		}
-	}
+	public string Code { get; set; }
 
-	public string? Barcode
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CBarcode_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CBarcode_003Ek__BackingField = value;
-		}
-	}
+	public string? Barcode { get; set; }
 
-	public string Name
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CName_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CName_003Ek__BackingField = value;
-		}
-	}
+	public string Name { get; set; }
 
-	public string? Description
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CDescription_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CDescription_003Ek__BackingField = value;
-		}
-	}
+	public string? Description { get; set; }
 
-	public int CategoryId
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CCategoryId_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CCategoryId_003Ek__BackingField = value;
-		}
-	}
+	public int CategoryId { get; set; }
 
-	public int? SupplierId
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CSupplierId_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CSupplierId_003Ek__BackingField = value;
-		}
-	}
+	public int? SupplierId { get; set; }
 
-	public decimal PurchasePrice
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CPurchasePrice_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CPurchasePrice_003Ek__BackingField = value;
-		}
-	}
+	public decimal PurchasePrice { get; set; }
 
-	public decimal SalePrice
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CSalePrice_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CSalePrice_003Ek__BackingField = value;
-		}
-	}
+	public decimal SalePrice { get; set; }
 
-	public decimal WholesalePrice
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CWholesalePrice_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CWholesalePrice_003Ek__BackingField = value;
-		}
-	}
+	public decimal WholesalePrice { get; set; }
 
-	public decimal Stock
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CStock_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CStock_003Ek__BackingField = value;
-		}
-	}
+	public decimal Stock { get; set; }
 
-	public decimal MinStock
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CMinStock_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CMinStock_003Ek__BackingField = value;
-		}
-	}
+	public decimal MinStock { get; set; }
 
-	public string Unit
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CUnit_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CUnit_003Ek__BackingField = value;
-		}
-	}
+	public string Unit { get; set; }
 
-	public bool RequiresTax
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CRequiresTax_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CRequiresTax_003Ek__BackingField = value;
-		}
-	}
+	public bool RequiresTax { get; set; }
 
-	public bool IsService
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CIsService_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CIsService_003Ek__BackingField = value;
-		}
-	}
-
-	public CreateProductRequest()
-	{
-		_003CCode_003Ek__BackingField = string.Empty;
-		_003CName_003Ek__BackingField = string.Empty;
-		_003CUnit_003Ek__BackingField = "pza";
-		_003CRequiresTax_003Ek__BackingField = true;
-		base._002Ector();
-	}
+	public bool IsService { get; set; }
 }

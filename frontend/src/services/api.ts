@@ -167,6 +167,25 @@ export const reportsApi = {
   getHourlySales: (params?: any) => api.get('/reports/hourly-sales', { params }),
 };
 
+/* Campaigns */
+export const campaignsApi = {
+  getAll: (params?: any) => api.get('/campaigns', { params }),
+  getById: (id: number) => api.get(`/campaigns/${id}`),
+  create: (data: any) => api.post('/campaigns', data),
+  update: (id: number, data: any) => api.put(`/campaigns/${id}`, data),
+  delete: (id: number) => api.delete(`/campaigns/${id}`),
+  send: (id: number, channels: string[]) => api.post(`/campaigns/${id}/send`, { channels }),
+  getAvailableCustomers: () => api.get('/campaigns/available-customers/list'),
+  getExpiringProducts: (days?: number) => api.get('/campaigns/expiring-products/list', { params: { days } }),
+};
+
+/* WhatsApp */
+export const whatsAppApi = {
+  getStatus: () => api.get('/whatsapp/status'),
+  getQr: () => api.get('/whatsapp/qr'),
+  reconnect: () => api.post('/whatsapp/reconnect'),
+};
+
 /* CFDI Facturas */
 export const facturasApi = {
   getAll: (params?: any) => api.get('/facturas', { params }),

@@ -1,127 +1,29 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Runtime.CompilerServices;
-
 namespace POS.API.Models;
 
 [Table("ReturnItems")]
 public class ReturnItem
 {
 	[Key]
-	public int Id
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CId_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CId_003Ek__BackingField = value;
-		}
-	}
+	public int Id { get; set; }
 
-	public int ReturnId
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CReturnId_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CReturnId_003Ek__BackingField = value;
-		}
-	}
+	public int ReturnId { get; set; }
 
 	[ForeignKey("ReturnId")]
-	public Return Return
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CReturn_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CReturn_003Ek__BackingField = value;
-		}
-	}
+	public Return Return { get; set; }
 
-	public int ProductId
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CProductId_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CProductId_003Ek__BackingField = value;
-		}
-	}
+	public int ProductId { get; set; }
 
 	[ForeignKey("ProductId")]
-	public Product Product
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CProduct_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CProduct_003Ek__BackingField = value;
-		}
-	}
+	public Product Product { get; set; }
 
 	[Column(TypeName = "decimal(18,2)")]
-	public decimal Quantity
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CQuantity_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CQuantity_003Ek__BackingField = value;
-		}
-	}
+	public decimal Quantity { get; set; }
 
 	[Column(TypeName = "decimal(18,2)")]
-	public decimal UnitPrice
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CUnitPrice_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CUnitPrice_003Ek__BackingField = value;
-		}
-	}
+	public decimal UnitPrice { get; set; }
 
 	[Column(TypeName = "decimal(18,2)")]
-	public decimal Subtotal
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CSubtotal_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CSubtotal_003Ek__BackingField = value;
-		}
-	}
+	public decimal Subtotal { get; set; }
 }

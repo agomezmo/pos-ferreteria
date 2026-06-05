@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using POS.API.DTOs;
 using POS.API.Data;
 
@@ -9,53 +10,98 @@ namespace POS.API.Services;
 
 public class ReportService
 {
-	private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
 
-	public ReportService(AppDbContext context)
-	{
-		_context = context;
-	}
+    public ReportService(AppDbContext context)
+    {
+        _context = context;
+    }
 
-	[AsyncStateMachine(typeof(_003CGetDailyReportAsync_003Ed__2))]
-	public System.Threading.Tasks.Task<DailyReportDTO> GetDailyReportAsync(System.DateTime date)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetDailyReportAsync_003Ed__2 _003CGetDailyReportAsync_003Ed__ = default(_003CGetDailyReportAsync_003Ed__2);
-		_003CGetDailyReportAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<DailyReportDTO>.Create();
-		_003CGetDailyReportAsync_003Ed__._003C_003E4__this = this;
-		_003CGetDailyReportAsync_003Ed__.date = date;
-		_003CGetDailyReportAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetDailyReportAsync_003Ed__._003C_003Et__builder.Start<_003CGetDailyReportAsync_003Ed__2>(ref _003CGetDailyReportAsync_003Ed__);
-		return _003CGetDailyReportAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+    public async Task<DailyReportDTO> GetDailyReportAsync(DateTime date)
+    {
+        var start = date.Date;
+        var end = start.AddDays(1);
 
-	[AsyncStateMachine(typeof(_003CGetTopProductsAsync_003Ed__3))]
-	public System.Threading.Tasks.Task<List<TopProductDTO>> GetTopProductsAsync(System.DateTime startDate, System.DateTime endDate, int top = 10)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetTopProductsAsync_003Ed__3 _003CGetTopProductsAsync_003Ed__ = default(_003CGetTopProductsAsync_003Ed__3);
-		_003CGetTopProductsAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<List<TopProductDTO>>.Create();
-		_003CGetTopProductsAsync_003Ed__._003C_003E4__this = this;
-		_003CGetTopProductsAsync_003Ed__.startDate = startDate;
-		_003CGetTopProductsAsync_003Ed__.endDate = endDate;
-		_003CGetTopProductsAsync_003Ed__.top = top;
-		_003CGetTopProductsAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetTopProductsAsync_003Ed__._003C_003Et__builder.Start<_003CGetTopProductsAsync_003Ed__3>(ref _003CGetTopProductsAsync_003Ed__);
-		return _003CGetTopProductsAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        var sales = await _context.Sales
+            .Where(s => s.CreatedAt >= start && s.CreatedAt < end)
+            .ToListAsync();
 
-	[AsyncStateMachine(typeof(_003CGetInventoryReportAsync_003Ed__4))]
-	public System.Threading.Tasks.Task<InventoryReportDTO> GetInventoryReportAsync()
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetInventoryReportAsync_003Ed__4 _003CGetInventoryReportAsync_003Ed__ = default(_003CGetInventoryReportAsync_003Ed__4);
-		_003CGetInventoryReportAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<InventoryReportDTO>.Create();
-		_003CGetInventoryReportAsync_003Ed__._003C_003E4__this = this;
-		_003CGetInventoryReportAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetInventoryReportAsync_003Ed__._003C_003Et__builder.Start<_003CGetInventoryReportAsync_003Ed__4>(ref _003CGetInventoryReportAsync_003Ed__);
-		return _003CGetInventoryReportAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        var items = await _context.SaleItems
+            .Include(si => si.Sale)
+            .Where(si => si.Sale.CreatedAt >= start && si.Sale.CreatedAt < end)
+            .ToListAsync();
+
+        var expenses = await _context.Expenses
+            .Where(e => e.CreatedAt >= start && e.CreatedAt < end)
+            .SumAsync(e => (decimal?)e.Amount) ?? 0;
+
+        var totalSales = sales.Count;
+        var totalRevenue = sales.Sum(s => s.Total);
+        var totalProductsSold = items.Sum(i => (int)i.Quantity);
+        var averageTicket = totalSales > 0 ? totalRevenue / totalSales : 0;
+
+        return new DailyReportDTO
+        {
+            Date = date,
+            TotalSales = totalSales,
+            TotalRevenue = totalRevenue,
+            TotalCash = sales.Where(s => s.PaymentMethod == "Cash").Sum(s => s.Total),
+            TotalCard = sales.Where(s => s.PaymentMethod == "Card").Sum(s => s.Total),
+            TotalTransfer = sales.Where(s => s.PaymentMethod == "Transfer").Sum(s => s.Total),
+            TotalCredit = sales.Where(s => s.PaymentMethod == "Credit").Sum(s => s.Total),
+            TotalTax = sales.Sum(s => s.Tax),
+            TotalDiscount = sales.Sum(s => s.Discount),
+            TotalExpenses = expenses,
+            TotalProductsSold = totalProductsSold,
+            AverageTicket = averageTicket
+        };
+    }
+
+    public async Task<List<TopProductDTO>> GetTopProductsAsync(DateTime startDate, DateTime endDate, int top = 10)
+    {
+        var end = endDate.Date.AddDays(1);
+        return await _context.SaleItems
+            .Include(si => si.Product).ThenInclude(p => p.Category)
+            .Where(si => si.Sale.CreatedAt >= startDate && si.Sale.CreatedAt < end)
+            .GroupBy(si => new { si.ProductId, si.Product.Name, si.Product.Code, CategoryName = si.Product.Category != null ? si.Product.Category.Name : "" })
+            .Select(g => new TopProductDTO
+            {
+                ProductId = g.Key.ProductId,
+                ProductName = g.Key.Name,
+                ProductCode = g.Key.Code,
+                CategoryName = g.Key.CategoryName,
+                TotalQuantity = (int)g.Sum(si => si.Quantity),
+                TotalRevenue = g.Sum(si => si.TotalPrice)
+            })
+            .OrderByDescending(t => t.TotalQuantity)
+            .Take(top)
+            .ToListAsync();
+    }
+
+    public async Task<InventoryReportDTO> GetInventoryReportAsync()
+    {
+        var products = await _context.Products.ToListAsync();
+        var lowStockItems = products
+            .Where(p => p.Stock > 0 && p.Stock <= p.MinStock)
+            .Select(p => new ProductDTO
+            {
+                Id = p.Id,
+                Code = p.Code,
+                Name = p.Name,
+                Stock = p.Stock,
+                MinStock = p.MinStock,
+                SalePrice = p.SalePrice,
+                IsActive = p.IsActive
+            })
+            .ToList();
+
+        return new InventoryReportDTO
+        {
+            TotalProducts = products.Count,
+            LowStockProducts = products.Count(p => p.Stock > 0 && p.Stock <= p.MinStock),
+            OutOfStockProducts = products.Count(p => p.Stock <= 0),
+            TotalInventoryValue = products.Sum(p => p.Stock * p.PurchasePrice),
+            LowStockItems = lowStockItems
+        };
+    }
 }

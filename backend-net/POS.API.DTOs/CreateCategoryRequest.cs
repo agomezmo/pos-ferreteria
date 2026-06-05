@@ -1,40 +1,8 @@
-using System.Runtime.CompilerServices;
-
 namespace POS.API.DTOs;
 
 public class CreateCategoryRequest
 {
-	public string Name
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CName_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CName_003Ek__BackingField = value;
-		}
-	}
+	public string Name { get; set; }
 
-	public string? Description
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CDescription_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CDescription_003Ek__BackingField = value;
-		}
-	}
-
-	public CreateCategoryRequest()
-	{
-		_003CName_003Ek__BackingField = string.Empty;
-		base._002Ector();
-	}
+	public string? Description { get; set; }
 }

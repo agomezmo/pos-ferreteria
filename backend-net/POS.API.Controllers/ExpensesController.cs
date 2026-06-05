@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using POS.API.DTOs;
 using POS.API.Data;
 
@@ -14,56 +15,78 @@ namespace POS.API.Controllers;
 [Authorize]
 public class ExpensesController : ControllerBase
 {
-	private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
 
-	public ExpensesController(AppDbContext context)
-	{
-		_context = context;
-	}
+    public ExpensesController(AppDbContext context)
+    {
+        _context = context;
+    }
 
-	[AsyncStateMachine(typeof(_003CGetExpenses_003Ed__2))]
-	[HttpGet]
-	public System.Threading.Tasks.Task<ActionResult<List<ExpenseDTO>>> GetExpenses([FromQuery] System.DateTime? startDate, [FromQuery] System.DateTime? endDate)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetExpenses_003Ed__2 _003CGetExpenses_003Ed__ = default(_003CGetExpenses_003Ed__2);
-		_003CGetExpenses_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<List<ExpenseDTO>>>.Create();
-		_003CGetExpenses_003Ed__._003C_003E4__this = this;
-		_003CGetExpenses_003Ed__.startDate = startDate;
-		_003CGetExpenses_003Ed__.endDate = endDate;
-		_003CGetExpenses_003Ed__._003C_003E1__state = -1;
-		_003CGetExpenses_003Ed__._003C_003Et__builder.Start<_003CGetExpenses_003Ed__2>(ref _003CGetExpenses_003Ed__);
-		return _003CGetExpenses_003Ed__._003C_003Et__builder.get_Task();
-	}
+    [HttpGet]
+    public async Task<ActionResult<List<ExpenseDTO>>> GetExpenses([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+    {
+        var query = _context.Expenses
+            .Include(e => e.User)
+            .AsQueryable();
 
-	[AsyncStateMachine(typeof(_003CCreateExpense_003Ed__3))]
-	[HttpPost]
-	public System.Threading.Tasks.Task<ActionResult<ExpenseDTO>> CreateExpense([FromBody] CreateExpenseRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CCreateExpense_003Ed__3 _003CCreateExpense_003Ed__ = default(_003CCreateExpense_003Ed__3);
-		_003CCreateExpense_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<ExpenseDTO>>.Create();
-		_003CCreateExpense_003Ed__._003C_003E4__this = this;
-		_003CCreateExpense_003Ed__.request = request;
-		_003CCreateExpense_003Ed__._003C_003E1__state = -1;
-		_003CCreateExpense_003Ed__._003C_003Et__builder.Start<_003CCreateExpense_003Ed__3>(ref _003CCreateExpense_003Ed__);
-		return _003CCreateExpense_003Ed__._003C_003Et__builder.get_Task();
-	}
+        if (startDate.HasValue)
+            query = query.Where(e => e.CreatedAt >= startDate.Value);
+        if (endDate.HasValue)
+            query = query.Where(e => e.CreatedAt <= endDate.Value);
 
-	[AsyncStateMachine(typeof(_003CDeleteExpense_003Ed__4))]
-	[HttpDelete("{id}")]
-	public System.Threading.Tasks.Task<ActionResult> DeleteExpense(int id)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CDeleteExpense_003Ed__4 _003CDeleteExpense_003Ed__ = default(_003CDeleteExpense_003Ed__4);
-		_003CDeleteExpense_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult>.Create();
-		_003CDeleteExpense_003Ed__._003C_003E4__this = this;
-		_003CDeleteExpense_003Ed__.id = id;
-		_003CDeleteExpense_003Ed__._003C_003E1__state = -1;
-		_003CDeleteExpense_003Ed__._003C_003Et__builder.Start<_003CDeleteExpense_003Ed__4>(ref _003CDeleteExpense_003Ed__);
-		return _003CDeleteExpense_003Ed__._003C_003Et__builder.get_Task();
-	}
+        var expenses = await query
+            .OrderByDescending(e => e.CreatedAt)
+            .Select(e => new ExpenseDTO
+            {
+                Id = e.Id,
+                Description = e.Description,
+                Amount = e.Amount,
+                Category = e.Category,
+                UserName = e.User != null ? e.User.FullName : null,
+                CreatedAt = e.CreatedAt
+            })
+            .ToListAsync();
+
+        return Ok(expenses);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<ExpenseDTO>> CreateExpense([FromBody] CreateExpenseRequest request)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        int userId = 0;
+        if (userIdClaim != null) int.TryParse(userIdClaim.Value, out userId);
+
+        var entity = new POS.API.Models.Expense
+        {
+            Description = request.Description,
+            Amount = request.Amount,
+            Category = request.Category,
+            UserId = userId > 0 ? userId : null,
+            CreatedAt = DateTime.UtcNow
+        };
+        _context.Expenses.Add(entity);
+        await _context.SaveChangesAsync();
+
+        return Ok(new ExpenseDTO
+        {
+            Id = entity.Id,
+            Description = entity.Description,
+            Amount = entity.Amount,
+            Category = entity.Category,
+            CreatedAt = entity.CreatedAt
+        });
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteExpense(int id)
+    {
+        var entity = await _context.Expenses.FindAsync(id);
+        if (entity == null)
+            return NotFound(new { error = "Gasto no encontrado" });
+
+        _context.Expenses.Remove(entity);
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Gasto eliminado" });
+    }
 }

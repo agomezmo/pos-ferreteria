@@ -1,7 +1,8 @@
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using POS.API.DTOs;
 using POS.API.Data;
 
@@ -12,41 +13,46 @@ namespace POS.API.Controllers;
 [Authorize]
 public class UsersController : ControllerBase
 {
-	private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
 
-	public UsersController(AppDbContext context)
-	{
-		_context = context;
-	}
+    public UsersController(AppDbContext context)
+    {
+        _context = context;
+    }
 
-	[AsyncStateMachine(typeof(_003CUpdateUser_003Ed__2))]
-	[HttpPut("{id}")]
-	public System.Threading.Tasks.Task<ActionResult<UserDTO>> UpdateUser(int id, [FromBody] UpdateUserRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CUpdateUser_003Ed__2 _003CUpdateUser_003Ed__ = default(_003CUpdateUser_003Ed__2);
-		_003CUpdateUser_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<UserDTO>>.Create();
-		_003CUpdateUser_003Ed__._003C_003E4__this = this;
-		_003CUpdateUser_003Ed__.id = id;
-		_003CUpdateUser_003Ed__.request = request;
-		_003CUpdateUser_003Ed__._003C_003E1__state = -1;
-		_003CUpdateUser_003Ed__._003C_003Et__builder.Start<_003CUpdateUser_003Ed__2>(ref _003CUpdateUser_003Ed__);
-		return _003CUpdateUser_003Ed__._003C_003Et__builder.get_Task();
-	}
+    [HttpPut("{id}")]
+    public async Task<ActionResult<UserDTO>> UpdateUser(int id, [FromBody] UpdateUserRequest request)
+    {
+        var entity = await _context.Users.FindAsync(id);
+        if (entity == null)
+            return NotFound(new { error = "Usuario no encontrado" });
 
-	[AsyncStateMachine(typeof(_003CDeleteUser_003Ed__3))]
-	[HttpDelete("{id}")]
-	public System.Threading.Tasks.Task<ActionResult> DeleteUser(int id)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CDeleteUser_003Ed__3 _003CDeleteUser_003Ed__ = default(_003CDeleteUser_003Ed__3);
-		_003CDeleteUser_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult>.Create();
-		_003CDeleteUser_003Ed__._003C_003E4__this = this;
-		_003CDeleteUser_003Ed__.id = id;
-		_003CDeleteUser_003Ed__._003C_003E1__state = -1;
-		_003CDeleteUser_003Ed__._003C_003Et__builder.Start<_003CDeleteUser_003Ed__3>(ref _003CDeleteUser_003Ed__);
-		return _003CDeleteUser_003Ed__._003C_003Et__builder.get_Task();
-	}
+        if (request.FullName != null) entity.FullName = request.FullName;
+        if (request.Email != null) entity.Email = request.Email;
+        if (request.RoleId.HasValue) entity.RoleId = request.RoleId.Value;
+        if (request.IsActive.HasValue) entity.IsActive = request.IsActive.Value;
+        await _context.SaveChangesAsync();
+
+        return Ok(new UserDTO
+        {
+            Id = entity.Id,
+            Username = entity.Username,
+            FullName = entity.FullName,
+            Email = entity.Email,
+            RoleId = entity.RoleId,
+            IsActive = entity.IsActive
+        });
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteUser(int id)
+    {
+        var entity = await _context.Users.FindAsync(id);
+        if (entity == null)
+            return NotFound(new { error = "Usuario no encontrado" });
+
+        entity.IsActive = false;
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Usuario desactivado" });
+    }
 }

@@ -92,6 +92,16 @@ export default function Layout() {
             onClick={() => setSidebarOpen(false)}>
             <span className="nav-icon">⚙️</span> Empresa
           </NavLink>
+
+          <div className="nav-section">MARKETING</div>
+          <NavLink to="/campaigns" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
+            onClick={() => setSidebarOpen(false)}>
+            <span className="nav-icon">📢</span> Campañas
+          </NavLink>
+          <NavLink to="/whatsapp" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
+            onClick={() => setSidebarOpen(false)}>
+            <span className="nav-icon">💬</span> WhatsApp
+          </NavLink>
         </div>
         <div className="sidebar-footer">
           <div className="user-info">

@@ -1,170 +1,27 @@
 using System;
-using System.Runtime.CompilerServices;
-
 namespace POS.API.DTOs;
 
 public class FacturaDTO
 {
-	public int Id
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CId_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CId_003Ek__BackingField = value;
-		}
-	}
+	public int Id { get; set; }
 
-	public string Uuid
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CUuid_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CUuid_003Ek__BackingField = value;
-		}
-	}
+	public string Uuid { get; set; }
 
-	public string Serie
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CSerie_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CSerie_003Ek__BackingField = value;
-		}
-	}
+	public string Serie { get; set; }
 
-	public string Folio
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CFolio_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CFolio_003Ek__BackingField = value;
-		}
-	}
+	public string Folio { get; set; }
 
-	public int SaleId
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CSaleId_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CSaleId_003Ek__BackingField = value;
-		}
-	}
+	public int SaleId { get; set; }
 
-	public string? CustomerName
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CCustomerName_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CCustomerName_003Ek__BackingField = value;
-		}
-	}
+	public string? CustomerName { get; set; }
 
-	public decimal Subtotal
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CSubtotal_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CSubtotal_003Ek__BackingField = value;
-		}
-	}
+	public decimal Subtotal { get; set; }
 
-	public decimal Iva
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CIva_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CIva_003Ek__BackingField = value;
-		}
-	}
+	public decimal Iva { get; set; }
 
-	public decimal Total
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CTotal_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CTotal_003Ek__BackingField = value;
-		}
-	}
+	public decimal Total { get; set; }
 
-	public string Status
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CStatus_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CStatus_003Ek__BackingField = value;
-		}
-	}
+	public string Status { get; set; }
 
-	public System.DateTime CreatedAt
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CCreatedAt_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CCreatedAt_003Ek__BackingField = value;
-		}
-	}
-
-	public FacturaDTO()
-	{
-		_003CUuid_003Ek__BackingField = string.Empty;
-		_003CSerie_003Ek__BackingField = string.Empty;
-		_003CFolio_003Ek__BackingField = string.Empty;
-		_003CStatus_003Ek__BackingField = string.Empty;
-		base._002Ector();
-	}
+	public System.DateTime CreatedAt { get; set; }
 }

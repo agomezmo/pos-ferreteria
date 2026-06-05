@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using POS.API.DTOs;
@@ -15,110 +15,138 @@ namespace POS.API.Services;
 
 public class AuthService
 {
-	private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
+    private readonly IConfiguration _configuration;
 
-	private readonly IConfiguration _configuration;
+    public AuthService(AppDbContext context, IConfiguration configuration)
+    {
+        _context = context;
+        _configuration = configuration;
+    }
 
-	public AuthService(AppDbContext context, IConfiguration configuration)
-	{
-		_context = context;
-		_configuration = configuration;
-	}
+    public async Task<LoginResponse?> LoginAsync(LoginRequest request)
+    {
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Username == request.Username);
 
-	[AsyncStateMachine(typeof(_003CLoginAsync_003Ed__3))]
-	public System.Threading.Tasks.Task<LoginResponse?> LoginAsync(LoginRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CLoginAsync_003Ed__3 _003CLoginAsync_003Ed__ = default(_003CLoginAsync_003Ed__3);
-		_003CLoginAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<LoginResponse>.Create();
-		_003CLoginAsync_003Ed__._003C_003E4__this = this;
-		_003CLoginAsync_003Ed__.request = request;
-		_003CLoginAsync_003Ed__._003C_003E1__state = -1;
-		_003CLoginAsync_003Ed__._003C_003Et__builder.Start<_003CLoginAsync_003Ed__3>(ref _003CLoginAsync_003Ed__);
-		return _003CLoginAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            return null;
 
-	[AsyncStateMachine(typeof(_003CGetUsersAsync_003Ed__4))]
-	public System.Threading.Tasks.Task<List<UserDTO>> GetUsersAsync()
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetUsersAsync_003Ed__4 _003CGetUsersAsync_003Ed__ = default(_003CGetUsersAsync_003Ed__4);
-		_003CGetUsersAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<List<UserDTO>>.Create();
-		_003CGetUsersAsync_003Ed__._003C_003E4__this = this;
-		_003CGetUsersAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetUsersAsync_003Ed__._003C_003Et__builder.Start<_003CGetUsersAsync_003Ed__4>(ref _003CGetUsersAsync_003Ed__);
-		return _003CGetUsersAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        var token = GenerateJwtToken(user);
 
-	[AsyncStateMachine(typeof(_003CCreateUserAsync_003Ed__5))]
-	public System.Threading.Tasks.Task<UserDTO?> CreateUserAsync(CreateUserRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CCreateUserAsync_003Ed__5 _003CCreateUserAsync_003Ed__ = default(_003CCreateUserAsync_003Ed__5);
-		_003CCreateUserAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<UserDTO>.Create();
-		_003CCreateUserAsync_003Ed__._003C_003E4__this = this;
-		_003CCreateUserAsync_003Ed__.request = request;
-		_003CCreateUserAsync_003Ed__._003C_003E1__state = -1;
-		_003CCreateUserAsync_003Ed__._003C_003Et__builder.Start<_003CCreateUserAsync_003Ed__5>(ref _003CCreateUserAsync_003Ed__);
-		return _003CCreateUserAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        _context.LoginLogs.Add(new LoginLog
+        {
+            UserId = user.Id,
+            LoginAt = DateTime.UtcNow,
+            IpAddress = ""
+        });
+        await _context.SaveChangesAsync();
 
-	[AsyncStateMachine(typeof(_003CChangePasswordAsync_003Ed__6))]
-	public System.Threading.Tasks.Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CChangePasswordAsync_003Ed__6 _003CChangePasswordAsync_003Ed__ = default(_003CChangePasswordAsync_003Ed__6);
-		_003CChangePasswordAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<bool>.Create();
-		_003CChangePasswordAsync_003Ed__._003C_003E4__this = this;
-		_003CChangePasswordAsync_003Ed__.userId = userId;
-		_003CChangePasswordAsync_003Ed__.request = request;
-		_003CChangePasswordAsync_003Ed__._003C_003E1__state = -1;
-		_003CChangePasswordAsync_003Ed__._003C_003Et__builder.Start<_003CChangePasswordAsync_003Ed__6>(ref _003CChangePasswordAsync_003Ed__);
-		return _003CChangePasswordAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        return new LoginResponse
+        {
+            Token = token,
+            UserId = user.Id,
+            Username = user.Username,
+            FullName = user.FullName,
+            Role = user.Role.Name
+        };
+    }
 
-	[AsyncStateMachine(typeof(_003CGetRolesAsync_003Ed__7))]
-	public System.Threading.Tasks.Task<List<RoleDTO>> GetRolesAsync()
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetRolesAsync_003Ed__7 _003CGetRolesAsync_003Ed__ = default(_003CGetRolesAsync_003Ed__7);
-		_003CGetRolesAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<List<RoleDTO>>.Create();
-		_003CGetRolesAsync_003Ed__._003C_003E4__this = this;
-		_003CGetRolesAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetRolesAsync_003Ed__._003C_003Et__builder.Start<_003CGetRolesAsync_003Ed__7>(ref _003CGetRolesAsync_003Ed__);
-		return _003CGetRolesAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+    public async Task<List<UserDTO>> GetUsersAsync()
+    {
+        return await _context.Users
+            .Include(u => u.Role)
+            .Select(u => new UserDTO
+            {
+                Id = u.Id,
+                Username = u.Username,
+                FullName = u.FullName,
+                Email = u.Email,
+                RoleId = u.RoleId,
+                RoleName = u.Role.Name,
+                IsActive = u.IsActive
+            })
+            .ToListAsync();
+    }
 
-	private string GenerateJwtToken(User user)
-	{
-		//IL_0075: Unknown result type (might be due to invalid IL or missing references)
-		//IL_007b: Expected O, but got Unknown
-		//IL_0088: Unknown result type (might be due to invalid IL or missing references)
-		//IL_008e: Expected O, but got Unknown
-		//IL_009b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a1: Expected O, but got Unknown
-		//IL_00b3: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b9: Expected O, but got Unknown
-		SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.get_UTF8().GetBytes(_configuration.get_Item("Jwt:Key")));
-		SigningCredentials signingCredentials = new SigningCredentials(key, "HS256");
-		System.DateTime dateTime = System.DateTime.get_UtcNow().AddMinutes(double.Parse(_configuration.get_Item("Jwt:ExpireMinutes") ?? "480"));
-		Claim[] claims = (Claim[])(object)new Claim[4]
-		{
-			new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", user.Id.ToString()),
-			new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name", user.Username),
-			new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname", user.FullName),
-			new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", user.Role.Name)
-		};
-		string issuer = _configuration.get_Item("Jwt:Issuer");
-		string audience = _configuration.get_Item("Jwt:Audience");
-		System.DateTime? expires = dateTime;
-		SigningCredentials signingCredentials2 = signingCredentials;
-		JwtSecurityToken token = new JwtSecurityToken(issuer, audience, claims, null, expires, signingCredentials2);
-		return new JwtSecurityTokenHandler().WriteToken(token);
-	}
+    public async Task<UserDTO?> CreateUserAsync(CreateUserRequest request)
+    {
+        var existing = await _context.Users.AnyAsync(u => u.Username == request.Username);
+        if (existing) return null;
+
+        var user = new User
+        {
+            Username = request.Username,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            FullName = request.FullName,
+            Email = request.Email,
+            RoleId = request.RoleId,
+            IsActive = true
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        return new UserDTO
+        {
+            Id = user.Id,
+            Username = user.Username,
+            FullName = user.FullName,
+            Email = user.Email,
+            RoleId = user.RoleId,
+            IsActive = user.IsActive
+        };
+    }
+
+    public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequest request)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return false;
+
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+            return false;
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<List<RoleDTO>> GetRolesAsync()
+    {
+        return await _context.Roles
+            .Select(r => new RoleDTO
+            {
+                Id = r.Id,
+                Name = r.Name
+            })
+            .ToListAsync();
+    }
+
+    private string GenerateJwtToken(User user)
+    {
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var expireMinutes = double.Parse(_configuration["Jwt:ExpireMinutes"] ?? "480");
+        var expiration = DateTime.UtcNow.AddMinutes(expireMinutes);
+
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.GivenName, user.FullName),
+            new Claim(ClaimTypes.Role, user.Role.Name)
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: _configuration["Jwt:Issuer"],
+            audience: _configuration["Jwt:Audience"],
+            claims: claims,
+            expires: expiration,
+            signingCredentials: credentials
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
 }

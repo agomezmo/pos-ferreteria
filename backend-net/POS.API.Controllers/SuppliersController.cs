@@ -1,7 +1,8 @@
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using POS.API.DTOs;
 using POS.API.Data;
 
@@ -12,41 +13,45 @@ namespace POS.API.Controllers;
 [Authorize]
 public class SuppliersController : ControllerBase
 {
-	private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
 
-	public SuppliersController(AppDbContext context)
-	{
-		_context = context;
-	}
+    public SuppliersController(AppDbContext context)
+    {
+        _context = context;
+    }
 
-	[AsyncStateMachine(typeof(_003CUpdateSupplier_003Ed__2))]
-	[HttpPut("{id}")]
-	public System.Threading.Tasks.Task<ActionResult<SupplierDTO>> UpdateSupplier(int id, [FromBody] CreateSupplierRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CUpdateSupplier_003Ed__2 _003CUpdateSupplier_003Ed__ = default(_003CUpdateSupplier_003Ed__2);
-		_003CUpdateSupplier_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<SupplierDTO>>.Create();
-		_003CUpdateSupplier_003Ed__._003C_003E4__this = this;
-		_003CUpdateSupplier_003Ed__.id = id;
-		_003CUpdateSupplier_003Ed__.request = request;
-		_003CUpdateSupplier_003Ed__._003C_003E1__state = -1;
-		_003CUpdateSupplier_003Ed__._003C_003Et__builder.Start<_003CUpdateSupplier_003Ed__2>(ref _003CUpdateSupplier_003Ed__);
-		return _003CUpdateSupplier_003Ed__._003C_003Et__builder.get_Task();
-	}
+    [HttpPut("{id}")]
+    public async Task<ActionResult<SupplierDTO>> UpdateSupplier(int id, [FromBody] CreateSupplierRequest request)
+    {
+        var entity = await _context.Suppliers.FindAsync(id);
+        if (entity == null)
+            return NotFound(new { error = "Proveedor no encontrado" });
 
-	[AsyncStateMachine(typeof(_003CDeleteSupplier_003Ed__3))]
-	[HttpDelete("{id}")]
-	public System.Threading.Tasks.Task<ActionResult> DeleteSupplier(int id)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CDeleteSupplier_003Ed__3 _003CDeleteSupplier_003Ed__ = default(_003CDeleteSupplier_003Ed__3);
-		_003CDeleteSupplier_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult>.Create();
-		_003CDeleteSupplier_003Ed__._003C_003E4__this = this;
-		_003CDeleteSupplier_003Ed__.id = id;
-		_003CDeleteSupplier_003Ed__._003C_003E1__state = -1;
-		_003CDeleteSupplier_003Ed__._003C_003Et__builder.Start<_003CDeleteSupplier_003Ed__3>(ref _003CDeleteSupplier_003Ed__);
-		return _003CDeleteSupplier_003Ed__._003C_003Et__builder.get_Task();
-	}
+        if (request.Name != null) entity.Name = request.Name;
+        if (request.ContactName != null) entity.ContactName = request.ContactName;
+        if (request.Phone != null) entity.Phone = request.Phone;
+        if (request.Email != null) entity.Email = request.Email;
+        await _context.SaveChangesAsync();
+
+        return Ok(new SupplierDTO
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            ContactName = entity.ContactName,
+            Phone = entity.Phone,
+            Email = entity.Email
+        });
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteSupplier(int id)
+    {
+        var entity = await _context.Suppliers.FindAsync(id);
+        if (entity == null)
+            return NotFound(new { error = "Proveedor no encontrado" });
+
+        _context.Suppliers.Remove(entity);
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Proveedor eliminado" });
+    }
 }

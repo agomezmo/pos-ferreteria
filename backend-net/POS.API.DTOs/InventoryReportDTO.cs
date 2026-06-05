@@ -1,83 +1,15 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-
 namespace POS.API.DTOs;
 
 public class InventoryReportDTO
 {
-	public int TotalProducts
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CTotalProducts_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CTotalProducts_003Ek__BackingField = value;
-		}
-	}
+	public int TotalProducts { get; set; }
 
-	public int LowStockProducts
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CLowStockProducts_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CLowStockProducts_003Ek__BackingField = value;
-		}
-	}
+	public int LowStockProducts { get; set; }
 
-	public int OutOfStockProducts
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003COutOfStockProducts_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003COutOfStockProducts_003Ek__BackingField = value;
-		}
-	}
+	public int OutOfStockProducts { get; set; }
 
-	public decimal TotalInventoryValue
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CTotalInventoryValue_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CTotalInventoryValue_003Ek__BackingField = value;
-		}
-	}
+	public decimal TotalInventoryValue { get; set; }
 
-	public List<ProductDTO> LowStockItems
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CLowStockItems_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CLowStockItems_003Ek__BackingField = value;
-		}
-	}
-
-	public InventoryReportDTO()
-	{
-		_003CLowStockItems_003Ek__BackingField = new List<ProductDTO>();
-		base._002Ector();
-	}
+	public List<ProductDTO> LowStockItems { get; set; }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,101 +13,66 @@ namespace POS.API.Controllers;
 [Authorize]
 public class CashRegisterController : ControllerBase
 {
-	private readonly CashRegisterService _cashRegisterService;
+    private readonly CashRegisterService _cashRegisterService;
 
-	public CashRegisterController(CashRegisterService cashRegisterService)
-	{
-		_cashRegisterService = cashRegisterService;
-	}
+    public CashRegisterController(CashRegisterService cashRegisterService)
+    {
+        _cashRegisterService = cashRegisterService;
+    }
 
-	[AsyncStateMachine(typeof(_003CGetCashRegisters_003Ed__2))]
-	[HttpGet]
-	public System.Threading.Tasks.Task<ActionResult<List<CashRegisterDTO>>> GetCashRegisters()
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetCashRegisters_003Ed__2 _003CGetCashRegisters_003Ed__ = default(_003CGetCashRegisters_003Ed__2);
-		_003CGetCashRegisters_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<List<CashRegisterDTO>>>.Create();
-		_003CGetCashRegisters_003Ed__._003C_003E4__this = this;
-		_003CGetCashRegisters_003Ed__._003C_003E1__state = -1;
-		_003CGetCashRegisters_003Ed__._003C_003Et__builder.Start<_003CGetCashRegisters_003Ed__2>(ref _003CGetCashRegisters_003Ed__);
-		return _003CGetCashRegisters_003Ed__._003C_003Et__builder.get_Task();
-	}
+    [HttpGet]
+    public async Task<ActionResult<List<CashRegisterDTO>>> GetCashRegisters()
+    {
+        var registers = await _cashRegisterService.GetCashRegistersAsync();
+        return Ok(registers);
+    }
 
-	[AsyncStateMachine(typeof(_003CCreateCashRegister_003Ed__3))]
-	[HttpPost]
-	public System.Threading.Tasks.Task<ActionResult<CashRegisterDTO>> CreateCashRegister([FromBody] CreateCashRegisterRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CCreateCashRegister_003Ed__3 _003CCreateCashRegister_003Ed__ = default(_003CCreateCashRegister_003Ed__3);
-		_003CCreateCashRegister_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<CashRegisterDTO>>.Create();
-		_003CCreateCashRegister_003Ed__._003C_003E4__this = this;
-		_003CCreateCashRegister_003Ed__.request = request;
-		_003CCreateCashRegister_003Ed__._003C_003E1__state = -1;
-		_003CCreateCashRegister_003Ed__._003C_003Et__builder.Start<_003CCreateCashRegister_003Ed__3>(ref _003CCreateCashRegister_003Ed__);
-		return _003CCreateCashRegister_003Ed__._003C_003Et__builder.get_Task();
-	}
+    [HttpPost]
+    public async Task<ActionResult<CashRegisterDTO>> CreateCashRegister([FromBody] CreateCashRegisterRequest request)
+    {
+        var result = await _cashRegisterService.CreateCashRegisterAsync(request);
+        return Ok(result);
+    }
 
-	[AsyncStateMachine(typeof(_003COpenSession_003Ed__4))]
-	[HttpPost("sessions/open")]
-	public System.Threading.Tasks.Task<ActionResult<CashRegisterSessionDTO>> OpenSession([FromBody] OpenSessionRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003COpenSession_003Ed__4 _003COpenSession_003Ed__ = default(_003COpenSession_003Ed__4);
-		_003COpenSession_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<CashRegisterSessionDTO>>.Create();
-		_003COpenSession_003Ed__._003C_003E4__this = this;
-		_003COpenSession_003Ed__.request = request;
-		_003COpenSession_003Ed__._003C_003E1__state = -1;
-		_003COpenSession_003Ed__._003C_003Et__builder.Start<_003COpenSession_003Ed__4>(ref _003COpenSession_003Ed__);
-		return _003COpenSession_003Ed__._003C_003Et__builder.get_Task();
-	}
+    [HttpPost("sessions/open")]
+    public async Task<ActionResult<CashRegisterSessionDTO>> OpenSession([FromBody] OpenSessionRequest request)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+        int userId = int.Parse(userIdClaim.Value);
 
-	[AsyncStateMachine(typeof(_003CCloseSession_003Ed__5))]
-	[HttpPost("sessions/{id}/close")]
-	public System.Threading.Tasks.Task<ActionResult<CashRegisterSessionDTO>> CloseSession(int id, [FromBody] CloseSessionRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CCloseSession_003Ed__5 _003CCloseSession_003Ed__ = default(_003CCloseSession_003Ed__5);
-		_003CCloseSession_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<CashRegisterSessionDTO>>.Create();
-		_003CCloseSession_003Ed__._003C_003E4__this = this;
-		_003CCloseSession_003Ed__.id = id;
-		_003CCloseSession_003Ed__.request = request;
-		_003CCloseSession_003Ed__._003C_003E1__state = -1;
-		_003CCloseSession_003Ed__._003C_003Et__builder.Start<_003CCloseSession_003Ed__5>(ref _003CCloseSession_003Ed__);
-		return _003CCloseSession_003Ed__._003C_003Et__builder.get_Task();
-	}
+        var result = await _cashRegisterService.OpenSessionAsync(request, userId);
+        if (result == null)
+            return BadRequest(new { error = "Ya hay una sesión activa o la caja no existe" });
+        return Ok(result);
+    }
 
-	[AsyncStateMachine(typeof(_003CGetCurrentSession_003Ed__6))]
-	[HttpGet("sessions/current/{cashRegisterId}")]
-	public System.Threading.Tasks.Task<ActionResult<CashRegisterSessionDTO>> GetCurrentSession(int cashRegisterId)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetCurrentSession_003Ed__6 _003CGetCurrentSession_003Ed__ = default(_003CGetCurrentSession_003Ed__6);
-		_003CGetCurrentSession_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<CashRegisterSessionDTO>>.Create();
-		_003CGetCurrentSession_003Ed__._003C_003E4__this = this;
-		_003CGetCurrentSession_003Ed__.cashRegisterId = cashRegisterId;
-		_003CGetCurrentSession_003Ed__._003C_003E1__state = -1;
-		_003CGetCurrentSession_003Ed__._003C_003Et__builder.Start<_003CGetCurrentSession_003Ed__6>(ref _003CGetCurrentSession_003Ed__);
-		return _003CGetCurrentSession_003Ed__._003C_003Et__builder.get_Task();
-	}
+    [HttpPost("sessions/{id}/close")]
+    public async Task<ActionResult<CashRegisterSessionDTO>> CloseSession(int id, [FromBody] CloseSessionRequest request)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+        int userId = int.Parse(userIdClaim.Value);
 
-	[AsyncStateMachine(typeof(_003CGetSessions_003Ed__7))]
-	[HttpGet("sessions")]
-	public System.Threading.Tasks.Task<ActionResult<List<CashRegisterSessionDTO>>> GetSessions([FromQuery] System.DateTime? startDate, [FromQuery] System.DateTime? endDate)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetSessions_003Ed__7 _003CGetSessions_003Ed__ = default(_003CGetSessions_003Ed__7);
-		_003CGetSessions_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<List<CashRegisterSessionDTO>>>.Create();
-		_003CGetSessions_003Ed__._003C_003E4__this = this;
-		_003CGetSessions_003Ed__.startDate = startDate;
-		_003CGetSessions_003Ed__.endDate = endDate;
-		_003CGetSessions_003Ed__._003C_003E1__state = -1;
-		_003CGetSessions_003Ed__._003C_003Et__builder.Start<_003CGetSessions_003Ed__7>(ref _003CGetSessions_003Ed__);
-		return _003CGetSessions_003Ed__._003C_003Et__builder.get_Task();
-	}
+        var result = await _cashRegisterService.CloseSessionAsync(id, request, userId);
+        if (result == null)
+            return NotFound(new { error = "Sesión no encontrada o ya cerrada" });
+        return Ok(result);
+    }
+
+    [HttpGet("sessions/current/{cashRegisterId}")]
+    public async Task<ActionResult<CashRegisterSessionDTO>> GetCurrentSession(int cashRegisterId)
+    {
+        var result = await _cashRegisterService.GetCurrentSessionAsync(cashRegisterId);
+        if (result == null)
+            return NotFound(new { error = "No hay sesión activa" });
+        return Ok(result);
+    }
+
+    [HttpGet("sessions")]
+    public async Task<ActionResult<List<CashRegisterSessionDTO>>> GetSessions([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+    {
+        var sessions = await _cashRegisterService.GetSessionsAsync(startDate, endDate);
+        return Ok(sessions);
+    }
 }

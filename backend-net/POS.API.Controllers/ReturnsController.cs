@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using POS.API.DTOs;
 using POS.API.Data;
 
@@ -13,39 +14,87 @@ namespace POS.API.Controllers;
 [Authorize]
 public class ReturnsController : ControllerBase
 {
-	private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
 
-	public ReturnsController(AppDbContext context)
-	{
-		_context = context;
-	}
+    public ReturnsController(AppDbContext context)
+    {
+        _context = context;
+    }
 
-	[AsyncStateMachine(typeof(_003CGetReturns_003Ed__2))]
-	[HttpGet]
-	public System.Threading.Tasks.Task<ActionResult<List<ReturnDTO>>> GetReturns()
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetReturns_003Ed__2 _003CGetReturns_003Ed__ = default(_003CGetReturns_003Ed__2);
-		_003CGetReturns_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<List<ReturnDTO>>>.Create();
-		_003CGetReturns_003Ed__._003C_003E4__this = this;
-		_003CGetReturns_003Ed__._003C_003E1__state = -1;
-		_003CGetReturns_003Ed__._003C_003Et__builder.Start<_003CGetReturns_003Ed__2>(ref _003CGetReturns_003Ed__);
-		return _003CGetReturns_003Ed__._003C_003Et__builder.get_Task();
-	}
+    [HttpGet]
+    public async Task<ActionResult<List<ReturnDTO>>> GetReturns()
+    {
+        var returns = await _context.Returns
+            .Include(r => r.Sale)
+            .Include(r => r.User)
+            .Include(r => r.Items).ThenInclude(i => i.Product)
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => new ReturnDTO
+            {
+                Id = r.Id,
+                SaleId = r.SaleId,
+                Reason = r.Reason,
+                Total = r.Total,
+                UserName = r.User != null ? r.User.FullName : null,
+                CreatedAt = r.CreatedAt,
+                Items = r.Items.Select(i => new ReturnItemDTO
+                {
+                    Id = i.Id,
+                    ProductId = i.ProductId,
+                    ProductName = i.Product != null ? i.Product.Name : null,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice,
+                    TotalPrice = i.TotalPrice
+                }).ToList()
+            })
+            .ToListAsync();
 
-	[AsyncStateMachine(typeof(_003CCreateReturn_003Ed__3))]
-	[HttpPost]
-	public System.Threading.Tasks.Task<ActionResult<ReturnDTO>> CreateReturn([FromBody] CreateReturnRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CCreateReturn_003Ed__3 _003CCreateReturn_003Ed__ = default(_003CCreateReturn_003Ed__3);
-		_003CCreateReturn_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<ReturnDTO>>.Create();
-		_003CCreateReturn_003Ed__._003C_003E4__this = this;
-		_003CCreateReturn_003Ed__.request = request;
-		_003CCreateReturn_003Ed__._003C_003E1__state = -1;
-		_003CCreateReturn_003Ed__._003C_003Et__builder.Start<_003CCreateReturn_003Ed__3>(ref _003CCreateReturn_003Ed__);
-		return _003CCreateReturn_003Ed__._003C_003Et__builder.get_Task();
-	}
+        return Ok(returns);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<ReturnDTO>> CreateReturn([FromBody] CreateReturnRequest request)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        int userId = 0;
+        if (userIdClaim != null) int.TryParse(userIdClaim.Value, out userId);
+
+        var entity = new POS.API.Models.Return
+        {
+            SaleId = request.SaleId,
+            UserId = userId > 0 ? userId : null,
+            Reason = request.Reason,
+            Total = request.Items.Sum(i => i.TotalPrice),
+            CreatedAt = System.DateTime.UtcNow
+        };
+        _context.Returns.Add(entity);
+        await _context.SaveChangesAsync();
+
+        foreach (var item in request.Items)
+        {
+            var returnItem = new POS.API.Models.ReturnItem
+            {
+                ReturnId = entity.Id,
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+                UnitPrice = item.UnitPrice,
+                TotalPrice = item.TotalPrice
+            };
+            _context.ReturnItems.Add(returnItem);
+
+            var product = await _context.Products.FindAsync(item.ProductId);
+            if (product != null)
+                product.Stock += item.Quantity;
+        }
+        await _context.SaveChangesAsync();
+
+        return Ok(new ReturnDTO
+        {
+            Id = entity.Id,
+            SaleId = entity.SaleId,
+            Reason = entity.Reason,
+            Total = entity.Total,
+            CreatedAt = entity.CreatedAt
+        });
+    }
 }

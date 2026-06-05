@@ -1,126 +1,20 @@
-using System.Runtime.CompilerServices;
-
 namespace POS.API.DTOs;
 
 public class UpdateCustomerRequest
 {
-	public string DocumentType
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CDocumentType_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CDocumentType_003Ek__BackingField = value;
-		}
-	}
+	public string DocumentType { get; set; }
 
-	public string DocumentNumber
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CDocumentNumber_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CDocumentNumber_003Ek__BackingField = value;
-		}
-	}
+	public string DocumentNumber { get; set; }
 
-	public string FullName
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CFullName_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CFullName_003Ek__BackingField = value;
-		}
-	}
+	public string FullName { get; set; }
 
-	public string? Phone
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CPhone_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CPhone_003Ek__BackingField = value;
-		}
-	}
+	public string? Phone { get; set; }
 
-	public string? Email
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CEmail_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CEmail_003Ek__BackingField = value;
-		}
-	}
+	public string? Email { get; set; }
 
-	public string? Address
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CAddress_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CAddress_003Ek__BackingField = value;
-		}
-	}
+	public string? Address { get; set; }
 
-	public decimal CreditLimit
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CCreditLimit_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CCreditLimit_003Ek__BackingField = value;
-		}
-	}
+	public decimal CreditLimit { get; set; }
 
-	public bool IsCreditCustomer
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CIsCreditCustomer_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CIsCreditCustomer_003Ek__BackingField = value;
-		}
-	}
-
-	public UpdateCustomerRequest()
-	{
-		_003CDocumentType_003Ek__BackingField = "DNI";
-		_003CDocumentNumber_003Ek__BackingField = string.Empty;
-		_003CFullName_003Ek__BackingField = string.Empty;
-		base._002Ector();
-	}
+	public bool IsCreditCustomer { get; set; }
 }

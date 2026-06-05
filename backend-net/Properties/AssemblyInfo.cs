@@ -12,4 +12,3 @@ using Microsoft.AspNetCore.Mvc.ApplicationParts;
 [assembly: AssemblyTitle("POS.API")]
 [assembly: ApplicationPart("Swashbuckle.AspNetCore.SwaggerGen")]
 [assembly: AssemblyVersion("1.0.0.0")]
-[module: System.Runtime.CompilerServices.RefSafetyRules(11)]

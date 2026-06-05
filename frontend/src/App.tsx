@@ -17,6 +17,8 @@ import Inventory from './pages/Inventory';
 import Company from './pages/Company';
 import Users from './pages/Users';
 import Facturas from './pages/Facturas';
+import Campaigns from './pages/Campaigns';
+import WhatsAppPage from './pages/WhatsApp';
 import Layout from './components/Layout';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -46,6 +48,8 @@ export default function App() {
         <Route path="company" element={<Company />} />
         <Route path="users" element={<Users />} />
         <Route path="facturas" element={<Facturas />} />
+        <Route path="campaigns" element={<Campaigns />} />
+        <Route path="whatsapp" element={<WhatsAppPage />} />
       </Route>
     </Routes>
   );

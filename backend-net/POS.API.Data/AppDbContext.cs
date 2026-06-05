@@ -69,8 +69,16 @@ public class AppDbContext : DbContext
 	public DbSet<FacturaItem> FacturaItems => Set<FacturaItem>();
 
 	public DbSet<FacturaRelacion> FacturaRelaciones => Set<FacturaRelacion>();
-
-	public AppDbContext(DbContextOptions<AppDbContext> options)
+ 
+ 	public DbSet<PromoCampaign> PromoCampaigns => Set<PromoCampaign>();
+ 
+ 	public DbSet<PromoCampaignProduct> PromoCampaignProducts => Set<PromoCampaignProduct>();
+ 
+ 	public DbSet<PromoCampaignCustomer> PromoCampaignCustomers => Set<PromoCampaignCustomer>();
+ 
+ 	public DbSet<PromoCampaignLog> PromoCampaignLogs => Set<PromoCampaignLog>();
+ 
+ 	public AppDbContext(DbContextOptions<AppDbContext> options)
 		: base(options)
 	{
 	}

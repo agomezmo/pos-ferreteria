@@ -1,156 +1,220 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using POS.API.DTOs;
 using POS.API.Data;
+using POS.API.Models;
 
 namespace POS.API.Services;
 
 public class ProductService
 {
-	private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
 
-	public ProductService(AppDbContext context)
-	{
-		_context = context;
-	}
+    public ProductService(AppDbContext context)
+    {
+        _context = context;
+    }
 
-	[AsyncStateMachine(typeof(_003CGetProductsAsync_003Ed__2))]
-	public System.Threading.Tasks.Task<List<ProductDTO>> GetProductsAsync(bool includeInactive = false)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetProductsAsync_003Ed__2 _003CGetProductsAsync_003Ed__ = default(_003CGetProductsAsync_003Ed__2);
-		_003CGetProductsAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<List<ProductDTO>>.Create();
-		_003CGetProductsAsync_003Ed__._003C_003E4__this = this;
-		_003CGetProductsAsync_003Ed__.includeInactive = includeInactive;
-		_003CGetProductsAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetProductsAsync_003Ed__._003C_003Et__builder.Start<_003CGetProductsAsync_003Ed__2>(ref _003CGetProductsAsync_003Ed__);
-		return _003CGetProductsAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+    public async Task<List<ProductDTO>> GetProductsAsync(bool includeInactive = false)
+    {
+        var query = _context.Products
+            .Include(p => p.Category)
+            .Include(p => p.Supplier)
+            .AsQueryable();
 
-	[AsyncStateMachine(typeof(_003CGetProductByIdAsync_003Ed__3))]
-	public System.Threading.Tasks.Task<ProductDTO?> GetProductByIdAsync(int id)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetProductByIdAsync_003Ed__3 _003CGetProductByIdAsync_003Ed__ = default(_003CGetProductByIdAsync_003Ed__3);
-		_003CGetProductByIdAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ProductDTO>.Create();
-		_003CGetProductByIdAsync_003Ed__._003C_003E4__this = this;
-		_003CGetProductByIdAsync_003Ed__.id = id;
-		_003CGetProductByIdAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetProductByIdAsync_003Ed__._003C_003Et__builder.Start<_003CGetProductByIdAsync_003Ed__3>(ref _003CGetProductByIdAsync_003Ed__);
-		return _003CGetProductByIdAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        if (!includeInactive)
+            query = query.Where(p => p.IsActive);
 
-	[AsyncStateMachine(typeof(_003CSearchProductsAsync_003Ed__4))]
-	public System.Threading.Tasks.Task<List<ProductDTO>> SearchProductsAsync(string search)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CSearchProductsAsync_003Ed__4 _003CSearchProductsAsync_003Ed__ = default(_003CSearchProductsAsync_003Ed__4);
-		_003CSearchProductsAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<List<ProductDTO>>.Create();
-		_003CSearchProductsAsync_003Ed__._003C_003E4__this = this;
-		_003CSearchProductsAsync_003Ed__.search = search;
-		_003CSearchProductsAsync_003Ed__._003C_003E1__state = -1;
-		_003CSearchProductsAsync_003Ed__._003C_003Et__builder.Start<_003CSearchProductsAsync_003Ed__4>(ref _003CSearchProductsAsync_003Ed__);
-		return _003CSearchProductsAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        return await query
+            .Select(p => new ProductDTO
+            {
+                Id = p.Id,
+                Code = p.Code,
+                Barcode = p.Barcode,
+                Name = p.Name,
+                Description = p.Description,
+                CategoryId = p.CategoryId,
+                CategoryName = p.Category != null ? p.Category.Name : null,
+                SupplierId = p.SupplierId,
+                SupplierName = p.Supplier != null ? p.Supplier.Name : null,
+                Stock = p.Stock,
+                MinStock = p.MinStock,
+                PurchasePrice = p.PurchasePrice,
+                SalePrice = p.SalePrice,
+                IsActive = p.IsActive,
+                ExpiryDate = p.ExpiryDate
+            })
+            .ToListAsync();
+    }
 
-	[AsyncStateMachine(typeof(_003CCreateProductAsync_003Ed__5))]
-	public System.Threading.Tasks.Task<ProductDTO> CreateProductAsync(CreateProductRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CCreateProductAsync_003Ed__5 _003CCreateProductAsync_003Ed__ = default(_003CCreateProductAsync_003Ed__5);
-		_003CCreateProductAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ProductDTO>.Create();
-		_003CCreateProductAsync_003Ed__._003C_003E4__this = this;
-		_003CCreateProductAsync_003Ed__.request = request;
-		_003CCreateProductAsync_003Ed__._003C_003E1__state = -1;
-		_003CCreateProductAsync_003Ed__._003C_003Et__builder.Start<_003CCreateProductAsync_003Ed__5>(ref _003CCreateProductAsync_003Ed__);
-		return _003CCreateProductAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+    public async Task<ProductDTO?> GetProductByIdAsync(int id)
+    {
+        return await _context.Products
+            .Include(p => p.Category)
+            .Include(p => p.Supplier)
+            .Where(p => p.Id == id)
+            .Select(p => new ProductDTO
+            {
+                Id = p.Id,
+                Code = p.Code,
+                Barcode = p.Barcode,
+                Name = p.Name,
+                Description = p.Description,
+                CategoryId = p.CategoryId,
+                CategoryName = p.Category != null ? p.Category.Name : null,
+                SupplierId = p.SupplierId,
+                SupplierName = p.Supplier != null ? p.Supplier.Name : null,
+                Stock = p.Stock,
+                MinStock = p.MinStock,
+                PurchasePrice = p.PurchasePrice,
+                SalePrice = p.SalePrice,
+                IsActive = p.IsActive,
+                ExpiryDate = p.ExpiryDate
+            })
+            .FirstOrDefaultAsync();
+    }
 
-	[AsyncStateMachine(typeof(_003CUpdateProductAsync_003Ed__6))]
-	public System.Threading.Tasks.Task<ProductDTO?> UpdateProductAsync(int id, UpdateProductRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CUpdateProductAsync_003Ed__6 _003CUpdateProductAsync_003Ed__ = default(_003CUpdateProductAsync_003Ed__6);
-		_003CUpdateProductAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ProductDTO>.Create();
-		_003CUpdateProductAsync_003Ed__._003C_003E4__this = this;
-		_003CUpdateProductAsync_003Ed__.id = id;
-		_003CUpdateProductAsync_003Ed__.request = request;
-		_003CUpdateProductAsync_003Ed__._003C_003E1__state = -1;
-		_003CUpdateProductAsync_003Ed__._003C_003Et__builder.Start<_003CUpdateProductAsync_003Ed__6>(ref _003CUpdateProductAsync_003Ed__);
-		return _003CUpdateProductAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+    public async Task<List<ProductDTO>> SearchProductsAsync(string search)
+    {
+        return await _context.Products
+            .Include(p => p.Category)
+            .Include(p => p.Supplier)
+            .Where(p => p.IsActive && (
+                p.Code.Contains(search) ||
+                p.Barcode.Contains(search) ||
+                p.Name.Contains(search)))
+            .Select(p => new ProductDTO
+            {
+                Id = p.Id,
+                Code = p.Code,
+                Barcode = p.Barcode,
+                Name = p.Name,
+                CategoryName = p.Category != null ? p.Category.Name : null,
+                Stock = p.Stock,
+                SalePrice = p.SalePrice,
+                IsActive = p.IsActive
+            })
+            .ToListAsync();
+    }
 
-	[AsyncStateMachine(typeof(_003CDeleteProductAsync_003Ed__7))]
-	public System.Threading.Tasks.Task<bool> DeleteProductAsync(int id)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CDeleteProductAsync_003Ed__7 _003CDeleteProductAsync_003Ed__ = default(_003CDeleteProductAsync_003Ed__7);
-		_003CDeleteProductAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<bool>.Create();
-		_003CDeleteProductAsync_003Ed__._003C_003E4__this = this;
-		_003CDeleteProductAsync_003Ed__.id = id;
-		_003CDeleteProductAsync_003Ed__._003C_003E1__state = -1;
-		_003CDeleteProductAsync_003Ed__._003C_003Et__builder.Start<_003CDeleteProductAsync_003Ed__7>(ref _003CDeleteProductAsync_003Ed__);
-		return _003CDeleteProductAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+    public async Task<ProductDTO> CreateProductAsync(CreateProductRequest request)
+    {
+        var entity = new Product
+        {
+            Code = request.Code,
+            Barcode = request.Barcode,
+            Name = request.Name,
+            Description = request.Description,
+            CategoryId = request.CategoryId,
+            SupplierId = request.SupplierId,
+            Stock = request.Stock,
+            MinStock = request.MinStock,
+            PurchasePrice = request.PurchasePrice,
+            SalePrice = request.SalePrice,
+            IsActive = true,
+            ExpiryDate = request.ExpiryDate
+        };
+        _context.Products.Add(entity);
+        await _context.SaveChangesAsync();
 
-	[AsyncStateMachine(typeof(_003CGetCategoriesAsync_003Ed__8))]
-	public System.Threading.Tasks.Task<List<CategoryDTO>> GetCategoriesAsync()
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetCategoriesAsync_003Ed__8 _003CGetCategoriesAsync_003Ed__ = default(_003CGetCategoriesAsync_003Ed__8);
-		_003CGetCategoriesAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<List<CategoryDTO>>.Create();
-		_003CGetCategoriesAsync_003Ed__._003C_003E4__this = this;
-		_003CGetCategoriesAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetCategoriesAsync_003Ed__._003C_003Et__builder.Start<_003CGetCategoriesAsync_003Ed__8>(ref _003CGetCategoriesAsync_003Ed__);
-		return _003CGetCategoriesAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        return new ProductDTO
+        {
+            Id = entity.Id,
+            Code = entity.Code,
+            Name = entity.Name,
+            Stock = entity.Stock,
+            SalePrice = entity.SalePrice,
+            IsActive = entity.IsActive
+        };
+    }
 
-	[AsyncStateMachine(typeof(_003CCreateCategoryAsync_003Ed__9))]
-	public System.Threading.Tasks.Task<CategoryDTO> CreateCategoryAsync(CreateCategoryRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CCreateCategoryAsync_003Ed__9 _003CCreateCategoryAsync_003Ed__ = default(_003CCreateCategoryAsync_003Ed__9);
-		_003CCreateCategoryAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<CategoryDTO>.Create();
-		_003CCreateCategoryAsync_003Ed__._003C_003E4__this = this;
-		_003CCreateCategoryAsync_003Ed__.request = request;
-		_003CCreateCategoryAsync_003Ed__._003C_003E1__state = -1;
-		_003CCreateCategoryAsync_003Ed__._003C_003Et__builder.Start<_003CCreateCategoryAsync_003Ed__9>(ref _003CCreateCategoryAsync_003Ed__);
-		return _003CCreateCategoryAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+    public async Task<ProductDTO?> UpdateProductAsync(int id, UpdateProductRequest request)
+    {
+        var entity = await _context.Products.FindAsync(id);
+        if (entity == null) return null;
 
-	[AsyncStateMachine(typeof(_003CGetSuppliersAsync_003Ed__10))]
-	public System.Threading.Tasks.Task<List<SupplierDTO>> GetSuppliersAsync()
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetSuppliersAsync_003Ed__10 _003CGetSuppliersAsync_003Ed__ = default(_003CGetSuppliersAsync_003Ed__10);
-		_003CGetSuppliersAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<List<SupplierDTO>>.Create();
-		_003CGetSuppliersAsync_003Ed__._003C_003E4__this = this;
-		_003CGetSuppliersAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetSuppliersAsync_003Ed__._003C_003Et__builder.Start<_003CGetSuppliersAsync_003Ed__10>(ref _003CGetSuppliersAsync_003Ed__);
-		return _003CGetSuppliersAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        if (request.Code != null) entity.Code = request.Code;
+        if (request.Barcode != null) entity.Barcode = request.Barcode;
+        if (request.Name != null) entity.Name = request.Name;
+        if (request.Description != null) entity.Description = request.Description;
+        if (request.CategoryId.HasValue) entity.CategoryId = request.CategoryId;
+        if (request.SupplierId.HasValue) entity.SupplierId = request.SupplierId;
+        if (request.Stock.HasValue) entity.Stock = request.Stock.Value;
+        if (request.MinStock.HasValue) entity.MinStock = request.MinStock.Value;
+        if (request.PurchasePrice.HasValue) entity.PurchasePrice = request.PurchasePrice.Value;
+        if (request.SalePrice.HasValue) entity.SalePrice = request.SalePrice.Value;
+        if (request.IsActive.HasValue) entity.IsActive = request.IsActive.Value;
+        if (request.ExpiryDate.HasValue) entity.ExpiryDate = request.ExpiryDate;
 
-	[AsyncStateMachine(typeof(_003CCreateSupplierAsync_003Ed__11))]
-	public System.Threading.Tasks.Task<SupplierDTO> CreateSupplierAsync(CreateSupplierRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CCreateSupplierAsync_003Ed__11 _003CCreateSupplierAsync_003Ed__ = default(_003CCreateSupplierAsync_003Ed__11);
-		_003CCreateSupplierAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<SupplierDTO>.Create();
-		_003CCreateSupplierAsync_003Ed__._003C_003E4__this = this;
-		_003CCreateSupplierAsync_003Ed__.request = request;
-		_003CCreateSupplierAsync_003Ed__._003C_003E1__state = -1;
-		_003CCreateSupplierAsync_003Ed__._003C_003Et__builder.Start<_003CCreateSupplierAsync_003Ed__11>(ref _003CCreateSupplierAsync_003Ed__);
-		return _003CCreateSupplierAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        await _context.SaveChangesAsync();
+        return await GetProductByIdAsync(id);
+    }
+
+    public async Task<bool> DeleteProductAsync(int id)
+    {
+        var entity = await _context.Products.FindAsync(id);
+        if (entity == null) return false;
+
+        entity.IsActive = false;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<List<CategoryDTO>> GetCategoriesAsync()
+    {
+        return await _context.Categories
+            .Select(c => new CategoryDTO
+            {
+                Id = c.Id,
+                Name = c.Name
+            })
+            .ToListAsync();
+    }
+
+    public async Task<CategoryDTO> CreateCategoryAsync(CreateCategoryRequest request)
+    {
+        var entity = new Category { Name = request.Name };
+        _context.Categories.Add(entity);
+        await _context.SaveChangesAsync();
+
+        return new CategoryDTO { Id = entity.Id, Name = entity.Name };
+    }
+
+    public async Task<List<SupplierDTO>> GetSuppliersAsync()
+    {
+        return await _context.Suppliers
+            .Select(s => new SupplierDTO
+            {
+                Id = s.Id,
+                Name = s.Name,
+                ContactName = s.ContactName,
+                Phone = s.Phone,
+                Email = s.Email
+            })
+            .ToListAsync();
+    }
+
+    public async Task<SupplierDTO> CreateSupplierAsync(CreateSupplierRequest request)
+    {
+        var entity = new Supplier
+        {
+            Name = request.Name,
+            ContactName = request.ContactName,
+            Phone = request.Phone,
+            Email = request.Email
+        };
+        _context.Suppliers.Add(entity);
+        await _context.SaveChangesAsync();
+
+        return new SupplierDTO
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            ContactName = entity.ContactName,
+            Phone = entity.Phone,
+            Email = entity.Email
+        };
+    }
 }

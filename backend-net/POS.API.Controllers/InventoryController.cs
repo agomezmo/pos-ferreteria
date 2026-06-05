@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using POS.API.DTOs;
 using POS.API.Data;
 
@@ -14,42 +15,83 @@ namespace POS.API.Controllers;
 [Authorize]
 public class InventoryController : ControllerBase
 {
-	private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
 
-	public InventoryController(AppDbContext context)
-	{
-		_context = context;
-	}
+    public InventoryController(AppDbContext context)
+    {
+        _context = context;
+    }
 
-	[AsyncStateMachine(typeof(_003CGetMovements_003Ed__2))]
-	[HttpGet("movements")]
-	public System.Threading.Tasks.Task<ActionResult<List<InventoryMovementDTO>>> GetMovements([FromQuery] int? productId, [FromQuery] System.DateTime? startDate, [FromQuery] System.DateTime? endDate)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetMovements_003Ed__2 _003CGetMovements_003Ed__ = default(_003CGetMovements_003Ed__2);
-		_003CGetMovements_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<List<InventoryMovementDTO>>>.Create();
-		_003CGetMovements_003Ed__._003C_003E4__this = this;
-		_003CGetMovements_003Ed__.productId = productId;
-		_003CGetMovements_003Ed__.startDate = startDate;
-		_003CGetMovements_003Ed__.endDate = endDate;
-		_003CGetMovements_003Ed__._003C_003E1__state = -1;
-		_003CGetMovements_003Ed__._003C_003Et__builder.Start<_003CGetMovements_003Ed__2>(ref _003CGetMovements_003Ed__);
-		return _003CGetMovements_003Ed__._003C_003Et__builder.get_Task();
-	}
+    [HttpGet("movements")]
+    public async Task<ActionResult<List<InventoryMovementDTO>>> GetMovements([FromQuery] int? productId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+    {
+        var query = _context.InventoryMovements
+            .Include(m => m.Product)
+            .Include(m => m.User)
+            .AsQueryable();
 
-	[AsyncStateMachine(typeof(_003CCreateMovement_003Ed__3))]
-	[HttpPost("movements")]
-	public System.Threading.Tasks.Task<ActionResult<InventoryMovementDTO>> CreateMovement([FromBody] CreateInventoryMovementRequest request)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CCreateMovement_003Ed__3 _003CCreateMovement_003Ed__ = default(_003CCreateMovement_003Ed__3);
-		_003CCreateMovement_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<ActionResult<InventoryMovementDTO>>.Create();
-		_003CCreateMovement_003Ed__._003C_003E4__this = this;
-		_003CCreateMovement_003Ed__.request = request;
-		_003CCreateMovement_003Ed__._003C_003E1__state = -1;
-		_003CCreateMovement_003Ed__._003C_003Et__builder.Start<_003CCreateMovement_003Ed__3>(ref _003CCreateMovement_003Ed__);
-		return _003CCreateMovement_003Ed__._003C_003Et__builder.get_Task();
-	}
+        if (productId.HasValue)
+            query = query.Where(m => m.ProductId == productId.Value);
+        if (startDate.HasValue)
+            query = query.Where(m => m.CreatedAt >= startDate.Value);
+        if (endDate.HasValue)
+            query = query.Where(m => m.CreatedAt <= endDate.Value);
+
+        var movements = await query
+            .OrderByDescending(m => m.CreatedAt)
+            .Select(m => new InventoryMovementDTO
+            {
+                Id = m.Id,
+                ProductId = m.ProductId,
+                ProductName = m.Product != null ? m.Product.Name : null,
+                Type = m.Type,
+                Quantity = m.Quantity,
+                Notes = m.Notes,
+                UserName = m.User != null ? m.User.FullName : null,
+                CreatedAt = m.CreatedAt
+            })
+            .ToListAsync();
+
+        return Ok(movements);
+    }
+
+    [HttpPost("movements")]
+    public async Task<ActionResult<InventoryMovementDTO>> CreateMovement([FromBody] CreateInventoryMovementRequest request)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        int userId = 0;
+        if (userIdClaim != null) int.TryParse(userIdClaim.Value, out userId);
+
+        var product = await _context.Products.FindAsync(request.ProductId);
+        if (product == null)
+            return BadRequest(new { error = "Producto no encontrado" });
+
+        var entity = new POS.API.Models.InventoryMovement
+        {
+            ProductId = request.ProductId,
+            Type = request.Type,
+            Quantity = request.Quantity,
+            Notes = request.Notes,
+            UserId = userId > 0 ? userId : null,
+            CreatedAt = DateTime.UtcNow
+        };
+        _context.InventoryMovements.Add(entity);
+
+        if (request.Type == "in")
+            product.Stock += request.Quantity;
+        else if (request.Type == "out")
+            product.Stock -= request.Quantity;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new InventoryMovementDTO
+        {
+            Id = entity.Id,
+            ProductId = entity.ProductId,
+            Type = entity.Type,
+            Quantity = entity.Quantity,
+            Notes = entity.Notes,
+            CreatedAt = entity.CreatedAt
+        });
+    }
 }

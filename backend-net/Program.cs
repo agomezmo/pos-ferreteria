@@ -80,6 +80,7 @@ builder.Services.AddScoped<SaleService>();
 builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<CashRegisterService>();
 builder.Services.AddScoped<FacturaService>();
+builder.Services.AddSingleton<WhatsAppService>();
 builder.Services.AddControllers();
 
 var app = builder.Build();

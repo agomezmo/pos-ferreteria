@@ -1,7 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Runtime.CompilerServices;
-
 namespace POS.API.Models;
 
 [Table("CatClavesProdServ")]
@@ -9,55 +7,11 @@ public class CatClaveProdServ
 {
 	[Key]
 	[StringLength(10)]
-	public string Id
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CId_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CId_003Ek__BackingField = value;
-		}
-	}
+	public string Id { get; set; }
 
 	[Required]
 	[StringLength(300)]
-	public string Description
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CDescription_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CDescription_003Ek__BackingField = value;
-		}
-	}
+	public string Description { get; set; }
 
-	public bool IsActive
-	{
-		[CompilerGenerated]
-		get
-		{
-			return _003CIsActive_003Ek__BackingField;
-		}
-		[CompilerGenerated]
-		set
-		{
-			_003CIsActive_003Ek__BackingField = value;
-		}
-	}
-
-	public CatClaveProdServ()
-	{
-		_003CId_003Ek__BackingField = string.Empty;
-		_003CDescription_003Ek__BackingField = string.Empty;
-		_003CIsActive_003Ek__BackingField = true;
-		base._002Ector();
-	}
+	public bool IsActive { get; set; }
 }

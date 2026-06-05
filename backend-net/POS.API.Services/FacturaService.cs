@@ -1,73 +1,100 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using POS.API.DTOs;
 using POS.API.Data;
+using POS.API.Models;
 
 namespace POS.API.Services;
 
 public class FacturaService
 {
-	private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
 
-	public FacturaService(AppDbContext context)
-	{
-		_context = context;
-	}
+    public FacturaService(AppDbContext context)
+    {
+        _context = context;
+    }
 
-	[AsyncStateMachine(typeof(_003CGetFacturasAsync_003Ed__2))]
-	public System.Threading.Tasks.Task<List<FacturaDTO>> GetFacturasAsync()
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetFacturasAsync_003Ed__2 _003CGetFacturasAsync_003Ed__ = default(_003CGetFacturasAsync_003Ed__2);
-		_003CGetFacturasAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<List<FacturaDTO>>.Create();
-		_003CGetFacturasAsync_003Ed__._003C_003E4__this = this;
-		_003CGetFacturasAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetFacturasAsync_003Ed__._003C_003Et__builder.Start<_003CGetFacturasAsync_003Ed__2>(ref _003CGetFacturasAsync_003Ed__);
-		return _003CGetFacturasAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+    public async Task<List<FacturaDTO>> GetFacturasAsync()
+    {
+        return await _context.Facturas
+            .Include(f => f.Sale)
+            .Include(f => f.User)
+            .Select(f => new FacturaDTO
+            {
+                Id = f.Id,
+                SaleId = f.SaleId,
+                Folio = f.Folio,
+                Uuid = f.Uuid ?? "",
+                Serie = f.Serie ?? "",
+                Subtotal = f.Subtotal,
+                Iva = f.Iva,
+                Total = f.Total,
+                Status = f.Status,
+                CreatedAt = f.CreatedAt,
+                CustomerName = f.Customer != null ? f.Customer.FullName : null
+            })
+            .ToListAsync();
+    }
 
-	[AsyncStateMachine(typeof(_003CGetFacturaByIdAsync_003Ed__3))]
-	public System.Threading.Tasks.Task<FacturaDTO?> GetFacturaByIdAsync(int id)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CGetFacturaByIdAsync_003Ed__3 _003CGetFacturaByIdAsync_003Ed__ = default(_003CGetFacturaByIdAsync_003Ed__3);
-		_003CGetFacturaByIdAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<FacturaDTO>.Create();
-		_003CGetFacturaByIdAsync_003Ed__._003C_003E4__this = this;
-		_003CGetFacturaByIdAsync_003Ed__.id = id;
-		_003CGetFacturaByIdAsync_003Ed__._003C_003E1__state = -1;
-		_003CGetFacturaByIdAsync_003Ed__._003C_003Et__builder.Start<_003CGetFacturaByIdAsync_003Ed__3>(ref _003CGetFacturaByIdAsync_003Ed__);
-		return _003CGetFacturaByIdAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+    public async Task<FacturaDTO?> GetFacturaByIdAsync(int id)
+    {
+        return await _context.Facturas
+            .Include(f => f.Sale)
+            .Include(f => f.User)
+            .Where(f => f.Id == id)
+            .Select(f => new FacturaDTO
+            {
+                Id = f.Id,
+                SaleId = f.SaleId,
+                Folio = f.Folio,
+                Uuid = f.Uuid ?? "",
+                Serie = f.Serie ?? "",
+                Subtotal = f.Subtotal,
+                Iva = f.Iva,
+                Total = f.Total,
+                Status = f.Status,
+                CreatedAt = f.CreatedAt,
+                CustomerName = f.Customer != null ? f.Customer.FullName : null
+            })
+            .FirstOrDefaultAsync();
+    }
 
-	[AsyncStateMachine(typeof(_003CCreateFacturaAsync_003Ed__4))]
-	public System.Threading.Tasks.Task<FacturaDTO?> CreateFacturaAsync(FacturarRequest request, int userId)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CCreateFacturaAsync_003Ed__4 _003CCreateFacturaAsync_003Ed__ = default(_003CCreateFacturaAsync_003Ed__4);
-		_003CCreateFacturaAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<FacturaDTO>.Create();
-		_003CCreateFacturaAsync_003Ed__._003C_003E4__this = this;
-		_003CCreateFacturaAsync_003Ed__.request = request;
-		_003CCreateFacturaAsync_003Ed__.userId = userId;
-		_003CCreateFacturaAsync_003Ed__._003C_003E1__state = -1;
-		_003CCreateFacturaAsync_003Ed__._003C_003Et__builder.Start<_003CCreateFacturaAsync_003Ed__4>(ref _003CCreateFacturaAsync_003Ed__);
-		return _003CCreateFacturaAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+    public async Task<FacturaDTO?> CreateFacturaAsync(FacturarRequest request, int userId)
+    {
+        var sale = await _context.Sales
+            .Include(s => s.Items)
+            .Include(s => s.Customer)
+            .FirstOrDefaultAsync(s => s.Id == request.SaleId);
+        if (sale == null) return null;
 
-	[AsyncStateMachine(typeof(_003CCancelFacturaAsync_003Ed__5))]
-	public System.Threading.Tasks.Task<bool> CancelFacturaAsync(int id)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		_003CCancelFacturaAsync_003Ed__5 _003CCancelFacturaAsync_003Ed__ = default(_003CCancelFacturaAsync_003Ed__5);
-		_003CCancelFacturaAsync_003Ed__._003C_003Et__builder = AsyncTaskMethodBuilder<bool>.Create();
-		_003CCancelFacturaAsync_003Ed__._003C_003E4__this = this;
-		_003CCancelFacturaAsync_003Ed__.id = id;
-		_003CCancelFacturaAsync_003Ed__._003C_003E1__state = -1;
-		_003CCancelFacturaAsync_003Ed__._003C_003Et__builder.Start<_003CCancelFacturaAsync_003Ed__5>(ref _003CCancelFacturaAsync_003Ed__);
-		return _003CCancelFacturaAsync_003Ed__._003C_003Et__builder.get_Task();
-	}
+        var entity = new Factura
+        {
+            SaleId = request.SaleId,
+            UserId = userId,
+            CustomerId = sale.CustomerId,
+            Folio = $"F{System.DateTime.UtcNow:yyyyMMddHHmmss}",
+            Subtotal = sale.Subtotal,
+            Iva = sale.Tax,
+            Total = sale.Total,
+            Status = "active",
+            CreatedAt = System.DateTime.UtcNow
+        };
+        _context.Facturas.Add(entity);
+        await _context.SaveChangesAsync();
+
+        return await GetFacturaByIdAsync(entity.Id);
+    }
+
+    public async Task<bool> CancelFacturaAsync(int id)
+    {
+        var factura = await _context.Facturas.FindAsync(id);
+        if (factura == null) return false;
+
+        factura.Status = "cancelled";
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }
