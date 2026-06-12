@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,12 +40,16 @@ public class ProductService
                 CategoryName = p.Category != null ? p.Category.Name : null,
                 SupplierId = p.SupplierId,
                 SupplierName = p.Supplier != null ? p.Supplier.Name : null,
-                Stock = p.Stock,
-                MinStock = p.MinStock,
                 PurchasePrice = p.PurchasePrice,
                 SalePrice = p.SalePrice,
+                WholesalePrice = p.WholesalePrice,
+                Stock = p.Stock,
+                MinStock = p.MinStock,
+                Unit = p.Unit,
                 IsActive = p.IsActive,
-                ExpiryDate = p.ExpiryDate
+                RequiresTax = p.RequiresTax,
+                IsService = p.IsService,
+                CreatedAt = p.CreatedAt
             })
             .ToListAsync();
     }
@@ -66,12 +71,16 @@ public class ProductService
                 CategoryName = p.Category != null ? p.Category.Name : null,
                 SupplierId = p.SupplierId,
                 SupplierName = p.Supplier != null ? p.Supplier.Name : null,
-                Stock = p.Stock,
-                MinStock = p.MinStock,
                 PurchasePrice = p.PurchasePrice,
                 SalePrice = p.SalePrice,
+                WholesalePrice = p.WholesalePrice,
+                Stock = p.Stock,
+                MinStock = p.MinStock,
+                Unit = p.Unit,
                 IsActive = p.IsActive,
-                ExpiryDate = p.ExpiryDate
+                RequiresTax = p.RequiresTax,
+                IsService = p.IsService,
+                CreatedAt = p.CreatedAt
             })
             .FirstOrDefaultAsync();
     }
@@ -109,25 +118,21 @@ public class ProductService
             Description = request.Description,
             CategoryId = request.CategoryId,
             SupplierId = request.SupplierId,
-            Stock = request.Stock,
-            MinStock = request.MinStock,
             PurchasePrice = request.PurchasePrice,
             SalePrice = request.SalePrice,
+            WholesalePrice = request.WholesalePrice,
+            Stock = request.Stock,
+            MinStock = request.MinStock,
+            Unit = request.Unit ?? "pza",
+            RequiresTax = request.RequiresTax,
+            IsService = request.IsService,
             IsActive = true,
-            ExpiryDate = request.ExpiryDate
+            CreatedAt = DateTime.UtcNow
         };
         _context.Products.Add(entity);
         await _context.SaveChangesAsync();
 
-        return new ProductDTO
-        {
-            Id = entity.Id,
-            Code = entity.Code,
-            Name = entity.Name,
-            Stock = entity.Stock,
-            SalePrice = entity.SalePrice,
-            IsActive = entity.IsActive
-        };
+        return await GetProductByIdAsync(entity.Id);
     }
 
     public async Task<ProductDTO?> UpdateProductAsync(int id, UpdateProductRequest request)
@@ -139,14 +144,19 @@ public class ProductService
         if (request.Barcode != null) entity.Barcode = request.Barcode;
         if (request.Name != null) entity.Name = request.Name;
         if (request.Description != null) entity.Description = request.Description;
-        if (request.CategoryId.HasValue) entity.CategoryId = request.CategoryId;
-        if (request.SupplierId.HasValue) entity.SupplierId = request.SupplierId;
-        if (request.Stock.HasValue) entity.Stock = request.Stock.Value;
-        if (request.MinStock.HasValue) entity.MinStock = request.MinStock.Value;
+        if (request.CategoryId.HasValue) entity.CategoryId = request.CategoryId.Value;
+        if (request.SupplierId.HasValue) entity.SupplierId = request.SupplierId.Value;
         if (request.PurchasePrice.HasValue) entity.PurchasePrice = request.PurchasePrice.Value;
         if (request.SalePrice.HasValue) entity.SalePrice = request.SalePrice.Value;
+        if (request.WholesalePrice.HasValue) entity.WholesalePrice = request.WholesalePrice.Value;
+        if (request.Stock.HasValue) entity.Stock = request.Stock.Value;
+        if (request.MinStock.HasValue) entity.MinStock = request.MinStock.Value;
+        if (request.Unit != null) entity.Unit = request.Unit;
         if (request.IsActive.HasValue) entity.IsActive = request.IsActive.Value;
-        if (request.ExpiryDate.HasValue) entity.ExpiryDate = request.ExpiryDate;
+        if (request.RequiresTax.HasValue) entity.RequiresTax = request.RequiresTax.Value;
+        if (request.IsService.HasValue) entity.IsService = request.IsService.Value;
+
+        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return await GetProductByIdAsync(id);

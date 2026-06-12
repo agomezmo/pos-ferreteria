@@ -23,6 +23,20 @@ const OFFER_TYPES = [
   { value: 'fixed', label: 'Precio fijo' },
 ] as const;
 
+function fDate(d: string) { return d ? new Date(d).toLocaleDateString() : '-'; }
+function fCur(n: number) { return `$${Number(n).toFixed(2)}`; }
+
+function Badge({ status }: { status: string }) {
+  const m: Record<string, { bg: string; color: string; label: string }> = {
+    draft: { bg: '#f3f4f6', color: '#4b5563', label: 'Borrador' },
+    active: { bg: '#dbeafe', color: '#1d4ed8', label: 'Activa' },
+    completed: { bg: '#d1fae5', color: '#047857', label: 'Enviada' },
+    cancelled: { bg: '#fee2e2', color: '#b91c1c', label: 'Cancelada' },
+  };
+  const s = m[status] || m.draft;
+  return <span style={{ padding: '2px 10px', borderRadius: 999, fontSize: 12, fontWeight: 600, background: s.bg, color: s.color }}>{s.label}</span>;
+}
+
 export default function Campaigns() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +65,10 @@ export default function Campaigns() {
     } catch (err) { console.error(err); } finally { setLoading(false); }
   };
 
-  const categories = useMemo(() => Array.from(new Set(products.map(p => p.category_name || 'Sin categoría'))).sort(), [products]);
+  const categories = useMemo(() =>
+    Array.from(new Set(products.map(p => p.category_name || 'Sin categoría'))).sort(),
+  [products]);
+
   const categoryCounts = useMemo(() => {
     const map: Record<string, number> = {};
     for (const p of products) { const cat = p.category_name || 'Sin categoría'; map[cat] = (map[cat] || 0) + 1; }
@@ -69,7 +86,10 @@ export default function Campaigns() {
   const filteredCustomers = useMemo(() => {
     const s = customerSearch.toLowerCase().trim();
     if (!s) return customers;
-    return customers.filter(c => c.fullname.toLowerCase().includes(s) || (c.email || '').toLowerCase().includes(s) || (c.phone || '').includes(s));
+    return customers.filter(c =>
+      c.fullname.toLowerCase().includes(s) ||
+      (c.email || '').toLowerCase().includes(s) ||
+      (c.phone || '').includes(s));
   }, [customers, customerSearch]);
 
   const openCreate = async () => {
@@ -114,7 +134,6 @@ export default function Campaigns() {
 
   const toggleProduct = (id: number) => setForm(p => ({ ...p, product_ids: p.product_ids.includes(id) ? p.product_ids.filter(x => x !== id) : [...p.product_ids, id] }));
   const toggleCustomer = (id: number) => setForm(p => ({ ...p, customer_ids: p.customer_ids.includes(id) ? p.customer_ids.filter(x => x !== id) : [...p.customer_ids, id] }));
-
   const selectAllProducts = () => setForm(p => ({ ...p, product_ids: products.map(x => x.id) }));
   const deselectAllProducts = () => setForm(p => ({ ...p, product_ids: [] }));
   const selectExpiringSoon = (n: number) => {
@@ -126,60 +145,47 @@ export default function Campaigns() {
   const selectWithPhone = () => setForm(p => ({ ...p, customer_ids: customers.filter(x => x.phone).map(x => x.id) }));
   const deselectAllCustomers = () => setForm(p => ({ ...p, customer_ids: [] }));
 
-  const fDate = (d: string) => d ? new Date(d).toLocaleDateString() : '-';
-  const fCur = (n: number) => `$${Number(n).toFixed(2)}`;
-
-  const badge = (s: string) => {
-    const m: Record<string, string> = { draft: 'bg-gray-100 text-gray-600', active: 'bg-blue-100 text-blue-700', completed: 'bg-green-100 text-green-700', cancelled: 'bg-red-100 text-red-700' };
-    const l: Record<string, string> = { draft: 'Borrador', active: 'Activa', completed: 'Enviada', cancelled: 'Cancelada' };
-    return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${m[s] || 'bg-gray-100 text-gray-600'}`}>{l[s] || s}</span>;
-  };
-
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600" /></div>;
+  if (loading) return <div className="page-loading">Cargando...</div>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="page">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Campañas</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Crea y envía ofertas a tus clientes</p>
+          <h1>Campañas</h1>
+          <p style={{ color: 'var(--gray-500)', fontSize: 14, marginTop: 2 }}>Crea y envía ofertas a tus clientes</p>
         </div>
-        <button onClick={openCreate}
-          className="btn-primary flex items-center gap-1.5 text-sm font-semibold px-4 py-2">
+        <button onClick={openCreate} className="btn-primary">
           + Nueva Campaña
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      {/* ── Lista de campañas ── */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {campaigns.length === 0 ? (
-          <p className="text-center py-12 text-gray-400 text-sm">No hay campañas. Crea la primera.</p>
+          <p style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--gray-400)', fontSize: 14 }}>No hay campañas. Crea la primera.</p>
         ) : (
-          <table className="w-full text-sm">
+          <table className="table" style={{ boxShadow: 'none' }}>
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left py-3 px-4 text-gray-500 font-semibold text-xs uppercase">Nombre</th>
-                <th className="text-left py-3 px-4 text-gray-500 font-semibold text-xs uppercase">Estado</th>
-                <th className="text-center py-3 px-4 text-gray-500 font-semibold text-xs uppercase">Prod.</th>
-                <th className="text-center py-3 px-4 text-gray-500 font-semibold text-xs uppercase">Clientes</th>
-                <th className="text-center py-3 px-4 text-gray-500 font-semibold text-xs uppercase">Env.</th>
-                <th className="text-left py-3 px-4 text-gray-500 font-semibold text-xs uppercase">Creada</th>
-                <th className="text-center py-3 px-4 text-gray-500 font-semibold text-xs uppercase"></th>
+              <tr>
+                <th>Nombre</th><th>Estado</th><th style={{ textAlign: 'center' }}>Prod.</th>
+                <th style={{ textAlign: 'center' }}>Clientes</th><th style={{ textAlign: 'center' }}>Env.</th>
+                <th>Creada</th><th style={{ textAlign: 'center' }}></th>
               </tr>
             </thead>
             <tbody>
               {campaigns.map(c => (
                 <tr key={c.id} onClick={() => viewDetail(c)}
-                  className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer last:border-0 transition-colors">
-                  <td className="py-3 px-4 font-medium text-gray-800">{c.name}</td>
-                  <td className="py-3 px-4">{badge(c.status)}</td>
-                  <td className="py-3 px-4 text-center text-gray-700">{c.product_count}</td>
-                  <td className="py-3 px-4 text-center text-gray-700">{c.customer_count}</td>
-                  <td className="py-3 px-4 text-center text-gray-700">{c.sent_count}</td>
-                  <td className="py-3 px-4 text-gray-500 text-sm">{fDate(c.created_at)}</td>
-                  <td className="py-3 px-4 text-center">
+                  style={{ cursor: 'pointer' }}>
+                  <td><strong>{c.name}</strong></td>
+                  <td><Badge status={c.status} /></td>
+                  <td style={{ textAlign: 'center' }}>{c.product_count}</td>
+                  <td style={{ textAlign: 'center' }}>{c.customer_count}</td>
+                  <td style={{ textAlign: 'center' }}>{c.sent_count}</td>
+                  <td style={{ color: 'var(--gray-500)', fontSize: 13 }}>{fDate(c.created_at)}</td>
+                  <td style={{ textAlign: 'center' }}>
                     {c.status === 'draft' && (
                       <button onClick={e => { e.stopPropagation(); handleSend(c.id, ['email']); }}
-                        className="text-xs font-semibold text-green-600 bg-green-50 hover:bg-green-100 px-2.5 py-1.5 rounded-lg transition-colors">
+                        className="btn-sm" style={{ background: '#d1fae5', color: '#047857', fontWeight: 600 }}>
                         Enviar
                       </button>
                     )}
@@ -191,216 +197,199 @@ export default function Campaigns() {
         )}
       </div>
 
+      {/* ── Modal: Nueva Campaña ── */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 z-[1000] flex items-start justify-center overflow-y-auto py-6"
-          onClick={e => { if (e.target === e.currentTarget) setShowForm(false); }}>
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl mx-4"
-            onClick={e => e.stopPropagation()}>
-
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowForm(false); }}
+          style={{ alignItems: 'flex-start', paddingTop: '1.5rem', overflowY: 'auto' }}>
+          <div className="modal modal-lg" onClick={e => e.stopPropagation()}
+            style={{ maxWidth: 1100, maxHeight: '95vh' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
               <div>
-                <h2 className="text-xl font-bold text-gray-800">Nueva campaña</h2>
-                <p className="text-sm text-gray-500 mt-0.5">Completa los datos para crear la promoción</p>
+                <h2>Nueva campaña</h2>
+                <p style={{ color: 'var(--gray-500)', fontSize: 13, marginTop: 2 }}>Completa los datos para crear la promoción</p>
               </div>
               <button onClick={() => setShowForm(false)}
-                className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+                style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: 'var(--gray-400)', padding: '0 4px' }}>&times;</button>
             </div>
 
             <form onSubmit={handleCreate}>
-              <div className="px-6 py-5 space-y-6">
-                <div className="grid grid-cols-3 gap-5">
-                  <div className="col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nombre de la campaña *</label>
-                    <input required value={form.name}
-                      onChange={e => setForm({ ...form, name: e.target.value })}
-                      placeholder="Ej: Ofertas de temporada"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all" />
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div className="form-group">
+                  <label>Nombre de la campaña *</label>
+                  <input required value={form.name}
+                    onChange={e => setForm({ ...form, name: e.target.value })}
+                    placeholder="Ej: Ofertas de temporada" />
+                </div>
+                <div className="form-group">
+                  <label>Tipo de oferta</label>
+                  <select value={form.offer_type}
+                    onChange={e => setForm({ ...form, offer_type: e.target.value })}>
+                    {OFFER_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: form.offer_type === 'cost_price' ? '1fr 1fr 1fr' : '1fr 1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                {form.offer_type !== 'cost_price' && (
+                  <div className="form-group">
+                    <label>{form.offer_type === 'percentage' ? 'Descuento %' : 'Precio fijo ($)'}</label>
+                    <input type="number" step="0.01" min="0" value={form.offer_value}
+                      onChange={e => setForm({ ...form, offer_value: Number(e.target.value) })} />
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tipo de oferta</label>
-                    <select value={form.offer_type}
-                      onChange={e => setForm({ ...form, offer_type: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none">
-                      {OFFER_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                    </select>
+                )}
+                <div className="form-group">
+                  <label>Días mín. para caducar</label>
+                  <input type="number" min="1" value={form.min_expiry_days}
+                    onChange={e => setForm({ ...form, min_expiry_days: Number(e.target.value) })} />
+                </div>
+                <div className="form-group">
+                  <label>Días máx. para caducar</label>
+                  <input type="number" min="1" value={form.max_expiry_days}
+                    onChange={e => setForm({ ...form, max_expiry_days: Number(e.target.value) })} />
+                </div>
+                <div className="form-group">
+                  <label>Notas</label>
+                  <input value={form.notes}
+                    onChange={e => setForm({ ...form, notes: e.target.value })}
+                    placeholder="Opcional" />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                {/* Productos */}
+                <div className="card" style={{ padding: '1rem', marginBottom: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                    <span style={{ fontWeight: 600, fontSize: 14 }}>Productos</span>
+                    <span style={{ fontSize: 12, color: 'var(--gray-400)' }}>{form.product_ids.length}/{products.length} seleccionados</span>
+                  </div>
+                  <input placeholder="Buscar producto por nombre..."
+                    value={productSearch}
+                    onChange={e => { setProductSearch(e.target.value); setActiveCategory(''); }}
+                    className="search-bar" style={{ width: '100%', marginBottom: '0.5rem' }} />
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: '0.5rem' }}>
+                    <button type="button" onClick={selectAllProducts}
+                      style={btnSmall('#d1fae5', '#047857')}>Todos</button>
+                    <button type="button" onClick={() => selectExpiringSoon(7)}
+                      style={btnSmall('#fee2e2', '#b91c1c')}>Próximos 7 días</button>
+                    <button type="button" onClick={() => selectExpiringSoon(15)}
+                      style={btnSmall('#ffedd5', '#c2410c')}>15 días</button>
+                    <button type="button" onClick={() => selectExpiringSoon(30)}
+                      style={btnSmall('#fef3c7', '#b45309')}>30 días</button>
+                    <button type="button" onClick={deselectAllProducts}
+                      style={btnSmall('#f3f4f6', '#6b7280')}>Limpiar</button>
+                  </div>
+                  <div style={{ display: 'flex', gap: 4, marginBottom: '0.5rem', overflowX: 'auto', paddingBottom: 4 }}>
+                    <button type="button" onClick={() => setActiveCategory('')}
+                      style={activeCategory === '' ? btnSmall('#374151', '#fff') : btnSmall('#f3f4f6', '#6b7280')}>Todas</button>
+                    {categories.map(cat => (
+                      <button key={cat} type="button" onClick={() => { setActiveCategory(cat); setProductSearch(''); }}
+                        style={activeCategory === cat ? btnSmall('#6b7280', '#fff') : btnSmall('#f3f4f6', '#6b7280')}>
+                        {cat} {categoryCounts[cat] || 0}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ border: '1px solid var(--gray-200)', borderRadius: 8, overflow: 'hidden', maxHeight: 280, overflowY: 'auto' }}>
+                    {filteredProducts.length === 0 ? (
+                      <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--gray-300)', fontSize: 13 }}>Sin resultados</p>
+                    ) : (
+                      filteredProducts.map(p => {
+                        const days = p.expiry_date ? Math.ceil((new Date(p.expiry_date).getTime() - Date.now()) / 86400000) : 0;
+                        const sel = form.product_ids.includes(p.id);
+                        return (
+                          <div key={p.id} onClick={() => toggleProduct(p.id)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
+                              cursor: 'pointer', borderBottom: '1px solid var(--gray-100)', fontSize: 13,
+                              background: sel ? '#f0fdf4' : 'transparent',
+                            }}>
+                            <input type="checkbox" checked={sel} readOnly style={{ accentColor: '#16a34a', width: 16, height: 16, flexShrink: 0 }} />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: sel ? 600 : 400 }}>{p.name}</span>
+                              <span style={{ fontSize: 12, color: 'var(--gray-400)', fontFamily: 'monospace' }}>{p.code}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                              {days > 0 ? (
+                                <span style={{
+                                  fontSize: 12, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+                                  background: days <= 7 ? '#fee2e2' : days <= 15 ? '#ffedd5' : '#fef3c7',
+                                  color: days <= 7 ? '#b91c1c' : days <= 15 ? '#c2410c' : '#b45309',
+                                }}>{days}d</span>
+                              ) : (
+                                <span style={{ fontSize: 12, color: '#f87171' }}>Vencido</span>
+                              )}
+                              <span style={{ fontSize: 12, color: 'var(--gray-400)', textDecoration: 'line-through' }}>{fCur(p.sale_price)}</span>
+                              <span style={{ fontSize: 12, fontWeight: 700, color: '#16a34a' }}>{fCur(p.purchase_price)}</span>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-4 gap-5">
-                  {form.offer_type !== 'cost_price' && (
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                        {form.offer_type === 'percentage' ? 'Descuento %' : 'Precio fijo ($)'}
-                      </label>
-                      <input type="number" step="0.01" min="0" value={form.offer_value}
-                        onChange={e => setForm({ ...form, offer_value: Number(e.target.value) })}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none" />
-                    </div>
-                  )}
-                  <div className={form.offer_type === 'cost_price' ? 'col-span-2' : ''}>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Días para caducar</label>
-                    <div className="flex items-center gap-2">
-                      <input type="number" min="1" value={form.min_expiry_days}
-                        onChange={e => setForm({ ...form, min_expiry_days: Number(e.target.value) })}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none" />
-                      <span className="text-gray-400 font-medium">—</span>
-                      <input type="number" min="1" value={form.max_expiry_days}
-                        onChange={e => setForm({ ...form, max_expiry_days: Number(e.target.value) })}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none" />
-                    </div>
+                {/* Clientes */}
+                <div className="card" style={{ padding: '1rem', marginBottom: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                    <span style={{ fontWeight: 600, fontSize: 14 }}>Clientes</span>
+                    <span style={{ fontSize: 12, color: 'var(--gray-400)' }}>{form.customer_ids.length}/{customers.length} seleccionados</span>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Notas</label>
-                    <input value={form.notes}
-                      onChange={e => setForm({ ...form, notes: e.target.value })}
-                      placeholder="Opcional"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none" />
+                  <input placeholder="Buscar cliente por nombre..."
+                    value={customerSearch}
+                    onChange={e => setCustomerSearch(e.target.value)}
+                    className="search-bar" style={{ width: '100%', marginBottom: '0.5rem' }} />
+                  <div style={{ display: 'flex', gap: 8, marginBottom: '0.5rem' }}>
+                    <div style={statBox}>{customers.filter(c => c.email).length}<span style={{ display: 'block', fontSize: 11, color: 'var(--gray-400)' }}>Con email</span></div>
+                    <div style={statBox}>{customers.filter(c => c.phone).length}<span style={{ display: 'block', fontSize: 11, color: 'var(--gray-400)' }}>Con teléfono</span></div>
+                    <div style={statBox}>{customers.length}<span style={{ display: 'block', fontSize: 11, color: 'var(--gray-400)' }}>Total</span></div>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="card !p-4 !mb-0">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-bold text-gray-700">Productos</span>
-                      <span className="text-xs text-gray-400 font-medium">{form.product_ids.length}/{products.length} seleccionados</span>
-                    </div>
-                    <div className="relative mb-3">
-                      <input placeholder="Buscar producto por nombre..." value={productSearch}
-                        onChange={e => { setProductSearch(e.target.value); setActiveCategory(''); }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none" />
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      <button type="button" onClick={selectAllProducts}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 transition-colors">Todos</button>
-                      <button type="button" onClick={() => selectExpiringSoon(7)}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-colors">Próximos 7 días</button>
-                      <button type="button" onClick={() => selectExpiringSoon(15)}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 border border-orange-200 transition-colors">15 días</button>
-                      <button type="button" onClick={() => selectExpiringSoon(30)}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-200 transition-colors">30 días</button>
-                      <button type="button" onClick={deselectAllProducts}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-200 transition-colors">Limpiar</button>
-                    </div>
-                    <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
-                      <button type="button" onClick={() => setActiveCategory('')}
-                        className={`whitespace-nowrap text-xs font-semibold px-3 py-1 rounded-full transition-colors ${!activeCategory ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>Todas</button>
-                      {categories.map(cat => (
-                        <button key={cat} type="button" onClick={() => { setActiveCategory(cat); setProductSearch(''); }}
-                          className={`whitespace-nowrap text-xs font-semibold px-3 py-1 rounded-full transition-colors ${activeCategory === cat ? 'text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-                          style={activeCategory === cat ? { backgroundColor: '#6b7280' } : {}}>
-                          {cat} {categoryCounts[cat] || 0}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="border border-gray-200 rounded-lg overflow-hidden max-h-72 overflow-y-auto">
-                      {filteredProducts.length === 0 ? (
-                        <p className="text-center py-8 text-gray-300 text-sm">Sin resultados</p>
-                      ) : (
-                        filteredProducts.map(p => {
-                          const days = p.expiry_date ? Math.ceil((new Date(p.expiry_date).getTime() - Date.now()) / 86400000) : 0;
-                          const sel = form.product_ids.includes(p.id);
-                          return (
-                            <div key={p.id} onClick={() => toggleProduct(p.id)}
-                              className={`flex items-center gap-3 px-3.5 py-2.5 cursor-pointer border-b border-gray-100 last:border-0 text-sm transition-colors ${sel ? 'bg-green-50' : 'hover:bg-gray-50'}`}>
-                              <input type="checkbox" checked={sel} readOnly className="accent-green-600 w-4 h-4 pointer-events-none shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <span className={`block truncate ${sel ? 'font-semibold text-gray-800' : 'text-gray-700'}`}>{p.name}</span>
-                                <span className="text-xs text-gray-400 font-mono">{p.code}</span>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                {days > 0 ? (
-                                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${days <= 7 ? 'bg-red-50 text-red-600' : days <= 15 ? 'bg-orange-50 text-orange-600' : 'bg-amber-50 text-amber-600'}`}>{days}d</span>
-                                ) : (
-                                  <span className="text-xs font-medium text-red-400">Vencido</span>
-                                )}
-                                <span className="text-xs text-gray-400 line-through">{fCur(p.sale_price)}</span>
-                                <span className="text-xs font-bold text-green-600">{fCur(p.purchase_price)}</span>
-                              </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: '0.5rem' }}>
+                    <button type="button" onClick={selectAllCustomers} style={btnSmall('#d1fae5', '#047857')}>Todos</button>
+                    <button type="button" onClick={selectWithEmail} style={btnSmall('#dbeafe', '#1d4ed8')}>Con email</button>
+                    <button type="button" onClick={selectWithPhone} style={btnSmall('#d1fae5', '#047857')}>Con teléfono</button>
+                    <button type="button" onClick={deselectAllCustomers} style={btnSmall('#f3f4f6', '#6b7280')}>Limpiar</button>
+                  </div>
+                  <div style={{ border: '1px solid var(--gray-200)', borderRadius: 8, overflow: 'hidden', maxHeight: 280, overflowY: 'auto' }}>
+                    {filteredCustomers.length === 0 ? (
+                      <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--gray-300)', fontSize: 13 }}>Sin resultados</p>
+                    ) : (
+                      filteredCustomers.map(c => {
+                        const sel = form.customer_ids.includes(c.id);
+                        return (
+                          <div key={c.id} onClick={() => toggleCustomer(c.id)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
+                              cursor: 'pointer', borderBottom: '1px solid var(--gray-100)', fontSize: 13,
+                              background: sel ? '#eff6ff' : 'transparent',
+                            }}>
+                            <input type="checkbox" checked={sel} readOnly style={{ accentColor: '#2563eb', width: 16, height: 16, flexShrink: 0 }} />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: sel ? 600 : 400 }}>{c.fullname}</span>
                             </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="card !p-4 !mb-0">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-bold text-gray-700">Clientes</span>
-                      <span className="text-xs text-gray-400 font-medium">{form.customer_ids.length}/{customers.length} seleccionados</span>
-                    </div>
-                    <div className="relative mb-3">
-                      <input placeholder="Buscar cliente por nombre..." value={customerSearch}
-                        onChange={e => setCustomerSearch(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none" />
-                    </div>
-                    <div className="flex gap-2 mb-3">
-                      <div className="flex-1 bg-gray-50 rounded-lg px-3 py-2 text-center border border-gray-100">
-                        <p className="text-sm font-bold text-blue-600">{customers.filter(c => c.email).length}</p>
-                        <p className="text-xs text-gray-400 font-medium">Con email</p>
-                      </div>
-                      <div className="flex-1 bg-gray-50 rounded-lg px-3 py-2 text-center border border-gray-100">
-                        <p className="text-sm font-bold text-emerald-600">{customers.filter(c => c.phone).length}</p>
-                        <p className="text-xs text-gray-400 font-medium">Con teléfono</p>
-                      </div>
-                      <div className="flex-1 bg-gray-50 rounded-lg px-3 py-2 text-center border border-gray-100">
-                        <p className="text-sm font-bold text-purple-600">{customers.length}</p>
-                        <p className="text-xs text-gray-400 font-medium">Total</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      <button type="button" onClick={selectAllCustomers}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 transition-colors">Todos</button>
-                      <button type="button" onClick={selectWithEmail}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 transition-colors">Con email</button>
-                      <button type="button" onClick={selectWithPhone}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 transition-colors">Con teléfono</button>
-                      <button type="button" onClick={deselectAllCustomers}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-200 transition-colors">Limpiar</button>
-                    </div>
-                    <div className="border border-gray-200 rounded-lg overflow-hidden max-h-72 overflow-y-auto">
-                      {filteredCustomers.length === 0 ? (
-                        <p className="text-center py-8 text-gray-300 text-sm">Sin resultados</p>
-                      ) : (
-                        filteredCustomers.map(c => {
-                          const sel = form.customer_ids.includes(c.id);
-                          return (
-                            <div key={c.id} onClick={() => toggleCustomer(c.id)}
-                              className={`flex items-center gap-3 px-3.5 py-2.5 cursor-pointer border-b border-gray-100 last:border-0 text-sm transition-colors ${sel ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
-                              <input type="checkbox" checked={sel} readOnly className="accent-blue-600 w-4 h-4 pointer-events-none shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <span className={`block truncate ${sel ? 'font-semibold text-gray-800' : 'text-gray-700'}`}>{c.fullname}</span>
-                              </div>
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                {c.email && (
-                                  <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">
-                                    {c.email.length > 20 ? c.email.substring(0, 18) + '…' : c.email}
-                                  </span>
-                                )}
-                                {c.phone && (
-                                  <span className="text-xs bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded font-medium">{c.phone}</span>
-                                )}
-                              </div>
+                            <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                              {c.email && <span style={{ fontSize: 11, background: '#dbeafe', color: '#1d4ed8', padding: '2px 6px', borderRadius: 4, fontWeight: 500 }}>
+                                {c.email.length > 20 ? c.email.substring(0, 18) + '…' : c.email}
+                              </span>}
+                              {c.phone && <span style={{ fontSize: 11, background: '#d1fae5', color: '#047857', padding: '2px 6px', borderRadius: 4, fontWeight: 500 }}>{c.phone}</span>}
                             </div>
-                          );
-                        })
-                      )}
-                    </div>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
-                <span className="text-sm text-gray-400">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid var(--gray-200)' }}>
+                <span style={{ fontSize: 13, color: 'var(--gray-400)' }}>
                   {form.name && form.product_ids.length > 0 && form.customer_ids.length > 0
                     ? '✓ Completo — puedes crear la campaña'
                     : 'Faltan campos por llenar'}
                 </span>
-                <div className="flex gap-3">
-                  <button type="button" onClick={() => setShowForm(false)}
-                    className="px-5 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Cancelar</button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" className="btn-secondary" onClick={() => setShowForm(false)}>Cancelar</button>
                   <button type="submit"
                     disabled={!form.name || form.product_ids.length === 0 || form.customer_ids.length === 0}
-                    className="px-6 py-2.5 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm">
+                    className="btn-primary" style={{ opacity: (!form.name || form.product_ids.length === 0 || form.customer_ids.length === 0) ? 0.5 : 1 }}>
                     Crear campaña
                   </button>
                 </div>
@@ -410,167 +399,135 @@ export default function Campaigns() {
         </div>
       )}
 
+      {/* ── Modal: Detalle de Campaña ── */}
       {showDetail && (
-        <div className="fixed inset-0 bg-black/40 z-[1000] flex items-start justify-center overflow-y-auto py-6"
-          onClick={e => { if (e.target === e.currentTarget) setShowDetail(null); }}>
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-4"
-            onClick={e => e.stopPropagation()}>
-
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowDetail(null); }}
+          style={{ alignItems: 'flex-start', paddingTop: '1.5rem', overflowY: 'auto' }}>
+          <div className="modal modal-lg" onClick={e => e.stopPropagation()}
+            style={{ maxWidth: 900, maxHeight: '95vh' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
               <div>
-                <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-bold text-gray-800">{detailData.name}</h2>
-                  {badge(detailData.status)}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <h2>{detailData.name}</h2>
+                  <Badge status={detailData.status} />
                 </div>
-                <p className="text-sm text-gray-500 mt-0.5">{detailData.description || 'Sin descripción'}</p>
+                <p style={{ color: 'var(--gray-500)', fontSize: 13, marginTop: 2 }}>{detailData.description || 'Sin descripción'}</p>
               </div>
               <button onClick={() => setShowDetail(null)}
-                className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+                style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: 'var(--gray-400)', padding: '0 4px' }}>&times;</button>
             </div>
 
-            <div className="px-6 py-5 space-y-6">
-              <div className="grid grid-cols-4 gap-4">
-                <div className="bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">
-                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Tipo</p>
-                  <p className="text-sm font-semibold text-gray-800 mt-1">{OFFER_TYPES.find(t => t.value === detailData.offer_type)?.label || detailData.offer_type}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+              {[
+                { label: 'Tipo', value: OFFER_TYPES.find(t => t.value === detailData.offer_type)?.label || detailData.offer_type },
+                ...(detailData.offer_value > 0 ? [{ label: 'Valor', value: detailData.offer_type === 'percentage' ? `${detailData.offer_value}%` : `$${detailData.offer_value}` }] : []),
+                { label: 'Vencimiento', value: `${detailData.min_expiry_days}–${detailData.max_expiry_days} días` },
+                { label: 'Creada por', value: `${detailData.created_by_name} · ${fDate(detailData.created_at)}` },
+              ].map((item, i) => (
+                <div key={i} className="detail-grid-item" style={{ background: 'var(--gray-50)', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--gray-100)' }}>
+                  <p style={{ fontSize: 11, color: 'var(--gray-500)', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>{item.label}</p>
+                  <p style={{ fontSize: 13, fontWeight: 600 }}>{item.value}</p>
                 </div>
-                {detailData.offer_value > 0 && (
-                  <div className="bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">
-                    <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Valor</p>
-                    <p className="text-sm font-semibold text-gray-800 mt-1">{detailData.offer_type === 'percentage' ? `${detailData.offer_value}%` : `$${detailData.offer_value}`}</p>
-                  </div>
-                )}
-                <div className="bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">
-                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Vencimiento</p>
-                  <p className="text-sm font-semibold text-gray-800 mt-1">{detailData.min_expiry_days}–{detailData.max_expiry_days} días</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">
-                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Creada por</p>
-                  <p className="text-sm font-semibold text-gray-800 mt-1">{detailData.created_by_name}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{fDate(detailData.created_at)}</p>
-                </div>
+              ))}
+            </div>
+
+            {detailData.notes && (
+              <div style={{ background: 'var(--gray-50)', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--gray-100)', marginBottom: '1.5rem' }}>
+                <p style={{ fontSize: 11, color: 'var(--gray-500)', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Notas</p>
+                <p style={{ fontSize: 13 }}>{detailData.notes}</p>
               </div>
+            )}
 
-              {detailData.notes && (
-                <div className="bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">
-                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Notas</p>
-                  <p className="text-sm text-gray-700">{detailData.notes}</p>
-                </div>
-              )}
-
-              <div>
-                <h3 className="text-sm font-bold text-gray-700 mb-3">Productos ({detailData.products?.length || 0})</h3>
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="text-left py-2.5 px-4 text-gray-500 font-semibold text-xs uppercase">Producto</th>
-                        <th className="text-center py-2.5 px-4 text-gray-500 font-semibold text-xs uppercase">Precio</th>
-                        <th className="text-center py-2.5 px-4 text-gray-500 font-semibold text-xs uppercase">Oferta</th>
-                        <th className="text-center py-2.5 px-4 text-gray-500 font-semibold text-xs uppercase">Caduca</th>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h3 style={{ fontSize: 14, marginBottom: '0.75rem' }}>Productos ({detailData.products?.length || 0})</h3>
+              <div style={{ border: '1px solid var(--gray-200)', borderRadius: 8, overflow: 'hidden' }}>
+                <table className="table" style={{ boxShadow: 'none' }}>
+                  <thead>
+                    <tr><th>Producto</th><th style={{ textAlign: 'center' }}>Precio</th><th style={{ textAlign: 'center' }}>Oferta</th><th style={{ textAlign: 'center' }}>Caduca</th></tr>
+                  </thead>
+                  <tbody>
+                    {detailData.products?.map((p: any) => (
+                      <tr key={p.id}>
+                        <td>{p.product_name}</td>
+                        <td style={{ textAlign: 'center', color: 'var(--gray-400)', textDecoration: 'line-through' }}>{fCur(p.original_price)}</td>
+                        <td style={{ textAlign: 'center', color: '#16a34a', fontWeight: 700 }}>{fCur(p.offer_price)}</td>
+                        <td style={{ textAlign: 'center' }}>{p.expiry_date ? fDate(p.expiry_date) : '—'}</td>
                       </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h3 style={{ fontSize: 14, marginBottom: '0.75rem' }}>Clientes ({detailData.customers?.length || 0})</h3>
+              <div style={{ border: '1px solid var(--gray-200)', borderRadius: 8, overflow: 'hidden' }}>
+                <table className="table" style={{ boxShadow: 'none' }}>
+                  <thead>
+                    <tr><th>Nombre</th><th>Email</th><th>Teléfono</th></tr>
+                  </thead>
+                  <tbody>
+                    {detailData.customers?.map((c: any) => (
+                      <tr key={c.id}>
+                        <td>{c.customer_name || c.fullname}</td>
+                        <td style={{ color: '#2563eb' }}>{c.contact_email || c.email || '—'}</td>
+                        <td style={{ color: '#059669' }}>{c.contact_phone || c.phone || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {detailData.logs?.length > 0 && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h3 style={{ fontSize: 14, marginBottom: '0.75rem' }}>Bitácora de envíos ({detailData.logs.length})</h3>
+                <div style={{ border: '1px solid var(--gray-200)', borderRadius: 8, overflow: 'hidden' }}>
+                  <table className="table" style={{ boxShadow: 'none' }}>
+                    <thead>
+                      <tr><th>Cliente</th><th style={{ textAlign: 'center' }}>Canal</th><th>Destino</th><th style={{ textAlign: 'center' }}>Estado</th><th style={{ textAlign: 'center' }}>Fecha</th></tr>
                     </thead>
                     <tbody>
-                      {detailData.products?.map((p: any) => (
-                        <tr key={p.id} className="border-b border-gray-100 last:border-0">
-                          <td className="py-2.5 px-4 text-gray-700 text-sm">{p.product_name}</td>
-                          <td className="py-2.5 px-4 text-center text-gray-400 line-through text-sm">{fCur(p.original_price)}</td>
-                          <td className="py-2.5 px-4 text-center text-green-600 font-bold text-sm">{fCur(p.offer_price)}</td>
-                          <td className="py-2.5 px-4 text-center text-gray-500 text-sm">{p.expiry_date ? fDate(p.expiry_date) : '—'}</td>
+                      {detailData.logs?.map((l: any) => (
+                        <tr key={l.id}>
+                          <td>{l.customer_name || '—'}</td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span style={{
+                              fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 999,
+                              background: l.channel === 'email' ? '#dbeafe' : '#d1fae5',
+                              color: l.channel === 'email' ? '#1d4ed8' : '#047857',
+                            }}>{l.channel === 'email' ? 'Email' : 'WhatsApp'}</span>
+                          </td>
+                          <td style={{ fontSize: 13 }}>{l.recipient}</td>
+                          <td style={{ textAlign: 'center' }}>
+                            {l.status === 'sent' ? <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Enviado</span> :
+                             l.status === 'failed' ? <span style={{ color: '#dc2626', fontWeight: 600 }} title={l.error_message || ''}>✗ Falló</span> :
+                             <span style={{ color: 'var(--gray-400)' }}>— Pendiente</span>}
+                          </td>
+                          <td style={{ textAlign: 'center', fontSize: 13 }}>{l.sent_at ? fDate(l.sent_at) : '—'}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               </div>
+            )}
 
-              <div>
-                <h3 className="text-sm font-bold text-gray-700 mb-3">Clientes ({detailData.customers?.length || 0})</h3>
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="text-left py-2.5 px-4 text-gray-500 font-semibold text-xs uppercase">Nombre</th>
-                        <th className="text-left py-2.5 px-4 text-gray-500 font-semibold text-xs uppercase">Email</th>
-                        <th className="text-left py-2.5 px-4 text-gray-500 font-semibold text-xs uppercase">Teléfono</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {detailData.customers?.map((c: any) => (
-                        <tr key={c.id} className="border-b border-gray-100 last:border-0">
-                          <td className="py-2.5 px-4 text-gray-700 text-sm">{c.customer_name}</td>
-                          <td className="py-2.5 px-4 text-blue-600 text-sm">{c.contact_email || '—'}</td>
-                          <td className="py-2.5 px-4 text-emerald-600 text-sm">{c.contact_phone || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {detailData.logs?.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-bold text-gray-700 mb-3">Bitácora de envíos ({detailData.logs.length})</h3>
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="bg-gray-50 border-b border-gray-200">
-                          <th className="text-left py-2.5 px-4 text-gray-500 font-semibold text-xs uppercase">Cliente</th>
-                          <th className="text-center py-2.5 px-4 text-gray-500 font-semibold text-xs uppercase">Canal</th>
-                          <th className="text-left py-2.5 px-4 text-gray-500 font-semibold text-xs uppercase">Destino</th>
-                          <th className="text-center py-2.5 px-4 text-gray-500 font-semibold text-xs uppercase">Estado</th>
-                          <th className="text-center py-2.5 px-4 text-gray-500 font-semibold text-xs uppercase">Fecha</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {detailData.logs?.map((l: any) => (
-                          <tr key={l.id} className="border-b border-gray-100 last:border-0 text-sm">
-                            <td className="py-2.5 px-4 text-gray-700">{l.customer_name || '—'}</td>
-                            <td className="py-2.5 px-4 text-center">
-                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${l.channel === 'email' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'}`}>{l.channel === 'email' ? 'Email' : 'WhatsApp'}</span>
-                            </td>
-                            <td className="py-2.5 px-4 text-gray-500 text-sm">{l.recipient}</td>
-                            <td className="py-2.5 px-4 text-center">
-                              {l.status === 'sent' ? <span className="text-green-600 font-semibold text-sm">✓ Enviado</span> :
-                               l.status === 'failed' ? <span className="text-red-500 font-semibold text-sm" title={l.error_message || ''}>✗ Falló</span> :
-                               <span className="text-gray-400 text-sm">— Pendiente</span>}
-                            </td>
-                            <td className="py-2.5 px-4 text-center text-gray-500 text-sm">{l.sent_at ? fDate(l.sent_at) : '—'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingTop: '1rem', borderTop: '1px solid var(--gray-200)' }}>
+              {detailData.status === 'draft' && (
+                <>
+                  <button onClick={() => handleSend(detailData.id, ['email'])} disabled={sending}
+                    className="btn-primary">📧 {sending ? 'Enviando...' : 'Enviar por Email'}</button>
+                  <button onClick={() => handleSend(detailData.id, ['whatsapp'])} disabled={sending}
+                    className="btn-primary" style={{ background: '#25D366' }}>💬 {sending ? 'Enviando...' : 'Enviar por WhatsApp'}</button>
+                  <button onClick={() => handleSend(detailData.id, ['email', 'whatsapp'])} disabled={sending}
+                    className="btn-secondary">📨 Ambos</button>
+                  <button onClick={() => handleDelete(detailData.id)}
+                    className="btn-danger">Eliminar</button>
+                </>
               )}
-
-              <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
-                {detailData.status === 'draft' && (
-                  <>
-                    <button onClick={() => handleSend(detailData.id, ['email'])} disabled={sending}
-                      className="flex-1 min-w-[140px] px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-40 shadow-sm">
-                      {sending ? 'Enviando...' : '📧 Enviar por Email'}
-                    </button>
-                    <button onClick={() => handleSend(detailData.id, ['whatsapp'])} disabled={sending}
-                      className="flex-1 min-w-[140px] px-5 py-2.5 text-sm font-bold text-white rounded-lg transition-colors disabled:opacity-40 shadow-sm"
-                      style={{ background: '#25D366' }}>
-                      {sending ? 'Enviando...' : '💬 Enviar por WhatsApp'}
-                    </button>
-                    <button onClick={() => handleSend(detailData.id, ['email', 'whatsapp'])} disabled={sending}
-                      className="flex-1 min-w-[140px] px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                      📨 Ambos
-                    </button>
-                    <button onClick={() => handleDelete(detailData.id)}
-                      className="px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                      Eliminar
-                    </button>
-                  </>
-                )}
-                <button onClick={() => setShowDetail(null)}
-                  className="px-5 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                  Cerrar
-                </button>
-              </div>
+              <button onClick={() => setShowDetail(null)}
+                className="btn-secondary">Cerrar</button>
             </div>
           </div>
         </div>
@@ -578,3 +535,18 @@ export default function Campaigns() {
     </div>
   );
 }
+
+/* ── Helpers for inline button styles ── */
+function btnSmall(bg: string, color: string) {
+  return {
+    fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 8,
+    background: bg, color, border: 'none', cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+  };
+}
+
+const statBox: React.CSSProperties = {
+  flex: 1, background: '#f9fafb', borderRadius: 8, padding: '8px 12px',
+  textAlign: 'center', border: '1px solid var(--gray-100)',
+  fontSize: 14, fontWeight: 700, color: '#2563eb',
+};

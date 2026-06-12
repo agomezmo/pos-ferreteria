@@ -1,3 +1,5 @@
+using System;
+
 namespace POS.API.DTOs;
 
 public class CreateProductRequest
@@ -29,4 +31,6 @@ public class CreateProductRequest
 	public bool RequiresTax { get; set; }
 
 	public bool IsService { get; set; }
+
+	public DateTime? ExpiryDate { get; set; }
 }

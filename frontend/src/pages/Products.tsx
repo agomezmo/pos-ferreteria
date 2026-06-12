@@ -12,6 +12,13 @@ interface Product {
 interface Category { id: number; name: string; }
 interface Supplier { id: number; name: string; }
 
+const emptyForm = () => ({
+  name: '', code: '', barcode: '', description: '', categoryid: '', supplierid: '',
+  purchaseprice: 0, saleprice: 0, stock: 0, minstock: 0, unit: 'pza',
+  requiresprescription: false, wholesale_price: 0, expiry_date: '', requires_tax: true,
+  isactive: true,
+});
+
 export default function Products() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -20,9 +27,10 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState<any>({});
+  const [form, setForm] = useState<any>(emptyForm());
   const [error, setError] = useState('');
   const [showImport, setShowImport] = useState(false);
+  const [statusMsg, setStatusMsg] = useState('');
 
   const handleCsvImport = async (rows: Record<string, string>[]) => {
     let success = 0;
@@ -62,50 +70,64 @@ export default function Products() {
 
   const normalizeProduct = (p: any): Product => ({
     id: p.id, code: p.code, barcode: p.barcode, name: p.name, description: p.description,
-    categoryid: p.categoryid ?? p.categoryId, category_name: p.category_name ?? p.categoryName,
-    supplierid: p.supplierid ?? p.supplierId, supplier_name: p.supplier_name ?? p.supplierName,
-    purchaseprice: p.purchaseprice ?? p.purchasePrice, saleprice: p.saleprice ?? p.salePrice,
-    stock: p.stock, minstock: p.minstock ?? p.minStock, unit: p.unit,
-    isactive: p.isactive ?? p.isActive, requiresprescription: p.requiresprescription ?? false,
-    wholesale_price: p.wholesale_price ?? p.wholesalePrice,
-    expiry_date: p.expiry_date ?? p.expiryDate, requires_tax: p.requires_tax ?? p.requiresTax,
+    categoryid: p.categoryid ?? p.categoryId ?? p.CategoryId,
+    category_name: p.category_name ?? p.categoryName ?? p.CategoryName,
+    supplierid: p.supplierid ?? p.supplierId ?? p.SupplierId,
+    supplier_name: p.supplier_name ?? p.supplierName ?? p.SupplierName,
+    purchaseprice: p.purchaseprice ?? p.purchasePrice ?? p.PurchasePrice ?? 0,
+    saleprice: p.saleprice ?? p.salePrice ?? p.SalePrice ?? 0,
+    stock: p.stock ?? p.Stock ?? 0,
+    minstock: p.minstock ?? p.minStock ?? p.MinStock ?? 0,
+    unit: p.unit ?? p.Unit ?? 'pza',
+    isactive: p.isactive ?? p.isActive ?? p.IsActive ?? true,
+    requiresprescription: p.requiresprescription ?? false,
+    wholesale_price: p.wholesale_price ?? p.wholesalePrice ?? p.WholesalePrice ?? 0,
+    expiry_date: p.expiry_date ?? p.expiryDate ?? p.ExpiryDate ?? '',
+    requires_tax: p.requires_tax ?? p.requiresTax ?? p.RequiresTax ?? true,
   });
 
   const fetchProducts = async () => {
     try {
-      const res = await productsApi.getAll({ limit: 200 });
-      const raw = res.data.products || res.data || [];
-      setAllProducts(raw.map(normalizeProduct));
+      const res = await productsApi.getAll({ limit: 500 });
+      const raw = res.data?.products || res.data || [];
+      setAllProducts(Array.isArray(raw) ? raw.map(normalizeProduct) : []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
 
   useEffect(() => {
     fetchProducts();
-    categoriesApi.getAll().then(r => setCategories(r.data)).catch(() => {});
-    suppliersApi.getAll().then(r => setSuppliers(r.data)).catch(() => {});
+    categoriesApi.getAll().then(r => setCategories(Array.isArray(r.data) ? r.data : [])).catch(() => {});
+    suppliersApi.getAll().then(r => setSuppliers(Array.isArray(r.data) ? r.data : [])).catch(() => {});
   }, []);
 
   const openCreate = () => {
     setEditId(null);
-    setForm({ name: '', code: '', barcode: '', description: '', categoryid: '', supplierid: '', purchaseprice: 0, saleprice: 0, stock: 0, minstock: 0, unit: 'pza', requiresprescription: false, wholesale_price: 0, expiry_date: '', requires_tax: true });
+    setForm(emptyForm());
     setShowModal(true);
   };
 
   const openEdit = (p: Product) => {
     setEditId(p.id);
-    setForm({ ...p, categoryid: p.categoryid || '', supplierid: p.supplierid || '' });
+    setForm({
+      ...p,
+      categoryid: p.categoryid || '',
+      supplierid: p.supplierid || '',
+    });
     setShowModal(true);
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+    setStatusMsg('');
     try {
       if (editId) {
         await productsApi.update(editId, form);
+        setStatusMsg('Producto actualizado correctamente');
       } else {
         await productsApi.create(form);
+        setStatusMsg('Producto creado correctamente');
       }
       setShowModal(false);
       fetchProducts();
@@ -125,22 +147,26 @@ export default function Products() {
   if (loading) return <div className="page-loading">Cargando...</div>;
 
   return (
-    <div className="page">
-      <div className="page-header">
+    <div className="page" style={{ height: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', maxWidth: '100%' }}>
+      <div className="page-header" style={{ flexShrink: 0 }}>
         <h1>Productos</h1>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>📥 Importar CSV</button>
           <button className="btn-primary" onClick={openCreate}>+ Nuevo Producto</button>
         </div>
       </div>
-      <div className="search-bar">
+
+      <div className="search-bar" style={{ flexShrink: 0 }}>
         <input type="text" placeholder="Buscar por nombre, código o código de barras..." value={search} onChange={e => setSearch(e.target.value)} />
+        <span style={{ fontSize: 13, color: 'var(--gray-400)', whiteSpace: 'nowrap' }}>{products.length} productos</span>
       </div>
-      <div className="table-container">
+
+      <div className="table-container" style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
         <table className="table">
           <thead>
             <tr>
-              <th>Código</th><th>Nombre</th><th>Categoría</th><th>Precio Venta</th><th>Stock</th><th>Stock Mín</th><th>Unidad</th><th>Acciones</th>
+              <th>Código</th><th>Nombre</th><th>Categoría</th><th>Precio Venta</th>
+              <th>Stock</th><th>Stock Mín</th><th>Unidad</th><th>Activo</th><th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -153,22 +179,24 @@ export default function Products() {
                 <td>{p.stock}</td>
                 <td>{p.minstock}</td>
                 <td>{p.unit}</td>
+                <td>{p.isactive ? '✅' : '❌'}</td>
                 <td className="actions">
                   <button className="btn-sm" onClick={() => openEdit(p)}>Editar</button>
-                  <button className="btn-sm btn-danger" onClick={() => handleDelete(p.id)}>Desactivar</button>
+                  <button className="btn-sm btn-danger" onClick={() => handleDelete(p.id)}>{p.isactive ? 'Desactivar' : 'Activar'}</button>
                 </td>
               </tr>
             ))}
-            {products.length === 0 && <tr><td colSpan={8} className="empty">No hay productos</td></tr>}
+            {products.length === 0 && <tr><td colSpan={9} className="empty">No hay productos</td></tr>}
           </tbody>
         </table>
       </div>
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal modal-lg" onClick={e => e.stopPropagation()} style={{ maxWidth: 800, maxHeight: '90vh', overflowY: 'auto' }}>
             <h2>{editId ? 'Editar Producto' : 'Nuevo Producto'}</h2>
             {error && <div className="error-message">{error}</div>}
+            {statusMsg && <div className="success-message">{statusMsg}</div>}
             <form onSubmit={handleSubmit}>
               <div className="form-row">
                 <div className="form-group">
@@ -180,14 +208,17 @@ export default function Products() {
                   <input value={form.barcode || ''} onChange={e => setForm({...form, barcode: e.target.value})} />
                 </div>
               </div>
+
               <div className="form-group">
                 <label>Nombre *</label>
                 <input value={form.name || ''} onChange={e => setForm({...form, name: e.target.value})} required />
               </div>
+
               <div className="form-group">
                 <label>Descripción</label>
                 <textarea value={form.description || ''} onChange={e => setForm({...form, description: e.target.value})} />
               </div>
+
               <div className="form-row">
                 <div className="form-group">
                   <label>Categoría *</label>
@@ -204,6 +235,7 @@ export default function Products() {
                   </select>
                 </div>
               </div>
+
               <div className="form-row">
                 <div className="form-group">
                   <label>Precio Compra</label>
@@ -213,7 +245,12 @@ export default function Products() {
                   <label>Precio Venta *</label>
                   <input type="number" step="0.01" value={form.saleprice || 0} onChange={e => setForm({...form, saleprice: parseFloat(e.target.value) || 0})} required />
                 </div>
+                <div className="form-group">
+                  <label>Precio Mayoreo</label>
+                  <input type="number" step="0.01" value={form.wholesale_price || 0} onChange={e => setForm({...form, wholesale_price: parseFloat(e.target.value) || 0})} />
+                </div>
               </div>
+
               <div className="form-row">
                 <div className="form-group">
                   <label>Stock</label>
@@ -228,26 +265,32 @@ export default function Products() {
                   <input value={form.unit || 'pza'} onChange={e => setForm({...form, unit: e.target.value})} />
                 </div>
               </div>
+
               <div className="form-row">
-                <div className="form-group">
-                  <label>Precio Mayoreo</label>
-                  <input type="number" step="0.01" value={form.wholesale_price || 0} onChange={e => setForm({...form, wholesale_price: parseFloat(e.target.value) || 0})} />
-                </div>
                 <div className="form-group">
                   <label>Fecha Caducidad</label>
                   <input type="date" value={form.expiry_date || ''} onChange={e => setForm({...form, expiry_date: e.target.value})} />
                 </div>
+                <div className="form-group">
+                  <label>Estado</label>
+                  <select value={form.isactive !== false ? 'true' : 'false'} onChange={e => setForm({...form, isactive: e.target.value === 'true'})}>
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                  </select>
+                </div>
               </div>
-              <div className="form-row checkbox-row">
-                <label>
-                  <input type="checkbox" checked={form.requiresprescription || false} onChange={e => setForm({...form, requiresprescription: e.target.checked})} />
-                  Requiere Receta
-                </label>
+
+              <div className="form-row checkbox-row" style={{ marginTop: '0.5rem' }}>
                 <label>
                   <input type="checkbox" checked={form.requires_tax ?? true} onChange={e => setForm({...form, requires_tax: e.target.checked})} />
                   Aplica IVA
                 </label>
+                <label>
+                  <input type="checkbox" checked={form.requiresprescription || false} onChange={e => setForm({...form, requiresprescription: e.target.checked})} />
+                  Requiere Receta
+                </label>
               </div>
+
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button>
                 <button type="submit" className="btn-primary">{editId ? 'Guardar Cambios' : 'Crear Producto'}</button>
@@ -256,6 +299,7 @@ export default function Products() {
           </div>
         </div>
       )}
+
       <CsvImportModal
         show={showImport}
         onClose={() => { setShowImport(false); fetchProducts(); }}

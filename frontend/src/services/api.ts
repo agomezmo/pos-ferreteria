@@ -27,6 +27,45 @@ api.interceptors.response.use(
 
 export default api;
 
+/* ── Helpers to map backend field names ── */
+
+function mapDailyReport(d: any) {
+  return {
+    total_sales: d.totalSales ?? d.TotalSales ?? 0,
+    total_revenue: d.totalRevenue ?? d.TotalRevenue ?? 0,
+    total_tax: d.totalTax ?? d.TotalTax ?? 0,
+    total_discounts: d.totalDiscount ?? d.TotalDiscount ?? 0,
+    unique_customers: d.uniqueCustomers ?? d.UniqueCustomers ?? 0,
+    total_cash: d.totalCash ?? d.TotalCash ?? 0,
+    total_card: d.totalCard ?? d.TotalCard ?? 0,
+    total_transfer: d.totalTransfer ?? d.TotalTransfer ?? 0,
+    total_expenses: d.totalExpenses ?? d.TotalExpenses ?? 0,
+    total_products_sold: d.totalProductsSold ?? d.TotalProductsSold ?? 0,
+    average_ticket: d.averageTicket ?? d.AverageTicket ?? 0,
+  };
+}
+
+function mapInventoryStatus(d: any) {
+  return {
+    total_products: d.totalProducts ?? d.TotalProducts ?? 0,
+    low_stock_count: d.lowStockProducts ?? d.LowStockProducts ?? 0,
+    out_of_stock_count: d.outOfStockProducts ?? d.OutOfStockProducts ?? 0,
+    inventory_value: d.totalInventoryValue ?? d.TotalInventoryValue ?? 0,
+    low_stock_items: d.lowStockItems ?? d.LowStockItems ?? [],
+  };
+}
+
+function mapTopProduct(p: any) {
+  return {
+    id: p.productId ?? p.ProductId ?? p.id,
+    name: p.productName ?? p.ProductName ?? p.name,
+    code: p.productCode ?? p.ProductCode ?? p.code,
+    category_name: p.categoryName ?? p.CategoryName ?? p.category_name,
+    total_quantity: p.totalQuantity ?? p.TotalQuantity ?? p.total_quantity ?? 0,
+    total_revenue: p.totalRevenue ?? p.TotalRevenue ?? p.total_revenue ?? 0,
+  };
+}
+
 /* Auth */
 export const authApi = {
   login: (username: string, password: string) =>
@@ -43,7 +82,6 @@ export const productsApi = {
   delete: (id: number) => api.delete(`/products/${id}`),
   getLowStock: (threshold?: number) => api.get('/products/low-stock', { params: { threshold } }),
   getByCategory: (categoryId: number) => api.get(`/products/category/${categoryId}`),
-  getExpiringSoon: (days?: number) => api.get('/products/expiring-soon', { params: { days } }),
   toggleActive: (id: number) => api.patch(`/products/${id}/toggle-active`),
 };
 
@@ -157,14 +195,34 @@ export const settingsApi = {
   update: (key: string, value: string) => api.put('/settings', { key, value }),
 };
 
-/* Reports */
+/* Reports - URLs match .NET backend routes, with field mapping */
 export const reportsApi = {
-  getDailySummary: (date?: string) => api.get('/reports/daily-summary', { params: { date } }),
-  getTopProducts: (params?: any) => api.get('/reports/top-products', { params }),
-  getInventoryStatus: () => api.get('/reports/inventory-status'),
-  getSalesByCategory: (params?: any) => api.get('/reports/sales-by-category', { params }),
-  getMonthlyComparison: (params?: any) => api.get('/reports/monthly-comparison', { params }),
-  getHourlySales: (params?: any) => api.get('/reports/hourly-sales', { params }),
+  getDailySummary: (date?: string) =>
+    api.get('/reports/daily', { params: { date } }).then(r => ({ ...r, data: mapDailyReport(r.data) })),
+  getTopProducts: (params?: any) => {
+    // Map frontend 'limit' to backend 'top'
+    const mapped = { ...params };
+    if (mapped.limit !== undefined) { mapped.top = mapped.limit; delete mapped.limit; }
+    return api.get('/reports/top-products', { params: mapped }).then(r => ({ ...r, data: (Array.isArray(r.data) ? r.data : []).map(mapTopProduct) }));
+  },
+  getInventoryStatus: () =>
+    api.get('/reports/inventory').then(r => ({ ...r, data: mapInventoryStatus(r.data) })),
+  getSalesByCategory: (params?: any) =>
+    api.get('/reports/sales-by-category', { params }),
+  getMonthlyComparison: (params?: any) =>
+    api.get('/reports/monthly-comparison', { params }),
+  getHourlySales: (params?: any) =>
+    api.get('/reports/hourly-sales', { params }),
+  getPaymentMethods: (params?: any) =>
+    api.get('/reports/payment-methods', { params }),
+  getTopCustomers: (params?: any) =>
+    api.get('/reports/top-customers', { params }),
+  getProfitMargin: (params?: any) =>
+    api.get('/reports/profit-margin', { params }),
+  getReturnRate: (params?: any) =>
+    api.get('/reports/return-rate', { params }),
+  getDayOfWeek: (params?: any) =>
+    api.get('/reports/day-of-week', { params }),
 };
 
 /* Campaigns */

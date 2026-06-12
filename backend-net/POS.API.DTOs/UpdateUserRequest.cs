@@ -2,11 +2,11 @@ namespace POS.API.DTOs;
 
 public class UpdateUserRequest
 {
-	public string FullName { get; set; }
+	public string? FullName { get; set; }
 
 	public string? Email { get; set; }
 
-	public int RoleId { get; set; }
+	public int? RoleId { get; set; }
 
-	public bool IsActive { get; set; }
+	public bool? IsActive { get; set; }
 }
