@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { cashRegisterApi } from '../services/api';
+import { cashRegisterApi, salesApi } from '../services/api';
+import api from '../services/api';
 
 export default function CashRegister() {
   const [sessions, setSessions] = useState<any[]>([]);
@@ -7,18 +8,41 @@ export default function CashRegister() {
   const [loading, setLoading] = useState(true);
   const [showOpenModal, setShowOpenModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
-  const [openingBalance, setOpeningBalance] = useState(0);
-  const [closingData, setClosingData] = useState({ closingbalance: 0, notes: '' });
+  const [openingBalance, setOpeningBalance] = useState('');
+  const [closingData, setClosingData] = useState({ closingAmount: '', closingNotes: '' });
   const [error, setError] = useState('');
+  const [sessionSales, setSessionSales] = useState<any>(null);
+
+  const CASH_REGISTER_ID = 1;
 
   const fetchData = async () => {
     try {
       const [sessRes, activeRes] = await Promise.all([
         cashRegisterApi.getSessions({ limit: 50 }),
-        cashRegisterApi.getActiveSession().catch(() => null),
+        cashRegisterApi.getCurrentSession(CASH_REGISTER_ID).catch(() => null),
       ]);
+      const active = activeRes?.data || null;
       setSessions(sessRes.data || []);
-      setActiveSession(activeRes?.data || null);
+      setActiveSession(active);
+      if (active) {
+        const openedAt = new Date(active.openedAt);
+        const salesRes = await api.get('/sales', { params: { limit: 1000 } });
+        const allSales = salesRes.data?.sales || salesRes.data || [];
+        const sinceOpen = allSales.filter((s: any) => new Date(s.createdAt) >= openedAt);
+        const cash = sinceOpen.filter((s: any) => s.paymentMethod === 'Efectivo' || s.paymentMethod === 'Cash');
+        const card = sinceOpen.filter((s: any) => s.paymentMethod === 'Tarjeta');
+        const transfer = sinceOpen.filter((s: any) => s.paymentMethod === 'Transferencia');
+        const totalCash = cash.reduce((sum: number, s: any) => sum + Number(s.total || 0), 0);
+        setSessionSales({
+          total_sales: sinceOpen.length,
+          total_cash: totalCash,
+          total_card: card.reduce((sum: number, s: any) => sum + Number(s.total || 0), 0),
+          total_transfer: transfer.reduce((sum: number, s: any) => sum + Number(s.total || 0), 0),
+          expected: Number(active.openingAmount || 0) + totalCash,
+        });
+      } else {
+        setSessionSales(null);
+      }
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
@@ -26,28 +50,34 @@ export default function CashRegister() {
   useEffect(() => { fetchData(); }, []);
 
   const openSession = async () => {
-    if (openingBalance <= 0) { setError('El monto inicial debe ser mayor a 0'); return; }
+    const amount = parseFloat(openingBalance);
+    if (!openingBalance || isNaN(amount) || amount < 0) { setError('Ingresa un monto inicial válido'); return; }
     try {
-      await cashRegisterApi.openSession({ openingbalance: openingBalance });
+      await cashRegisterApi.openSession({ cashRegisterId: CASH_REGISTER_ID, openingAmount: amount, openingNotes: '' });
       setShowOpenModal(false);
-      setOpeningBalance(0);
+      setOpeningBalance('');
       setError('');
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Error al abrir caja');
+      setError(err.response?.data?.error || err.response?.data?.message || 'Error al abrir caja');
     }
   };
 
   const closeSession = async () => {
-    if (closingData.closingbalance <= 0) { setError('El monto final debe ser mayor a 0'); return; }
+    if (!activeSession) return;
+    const amount = parseFloat(closingData.closingAmount);
+    if (!closingData.closingAmount || isNaN(amount) || amount < 0) { setError('Ingresa un monto final válido'); return; }
     try {
-      await cashRegisterApi.closeSession(closingData);
+      await cashRegisterApi.closeSession(activeSession.id, {
+        closingAmount: amount,
+        closingNotes: closingData.closingNotes || '',
+      });
       setShowCloseModal(false);
-      setClosingData({ closingbalance: 0, notes: '' });
+      setClosingData({ closingAmount: '', closingNotes: '' });
       setError('');
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Error al cerrar caja');
+      setError(err.response?.data?.error || err.response?.data?.message || 'Error al cerrar caja');
     }
   };
 
@@ -64,12 +94,14 @@ export default function CashRegister() {
           <div className="session-active-header">
             <div>
               <h2>Sesión Activa</h2>
-              <p>Abierta: {new Date(activeSession.openingdate).toLocaleString()}</p>
-              <p>Saldo Inicial: ${Number(activeSession.openingbalance).toFixed(2)}</p>
-              {activeSession.total_sales > 0 && (
+              <p>Abierta: {new Date(activeSession.openedAt).toLocaleString()}</p>
+              <p>Usuario: {activeSession.userName}</p>
+              <p>Saldo Inicial: ${Number(activeSession.openingAmount).toFixed(2)}</p>
+              {sessionSales && (
                 <>
-                  <p>Ventas: {activeSession.total_sales} | Efectivo: ${Number(activeSession.total_cash || 0).toFixed(2)}</p>
-                  <p>Tarjeta: ${Number(activeSession.total_card || 0).toFixed(2)} | Transferencia: ${Number(activeSession.total_transfer || 0).toFixed(2)}</p>
+                  <p>Ventas: {sessionSales.total_sales} | Efectivo: ${sessionSales.total_cash.toFixed(2)}</p>
+                  <p>Tarjeta: ${sessionSales.total_card.toFixed(2)} | Transferencia: ${sessionSales.total_transfer.toFixed(2)}</p>
+                  <p><strong>Efectivo Esperado: ${sessionSales.expected.toFixed(2)}</strong></p>
                 </>
               )}
             </div>
@@ -97,23 +129,28 @@ export default function CashRegister() {
             <thead>
               <tr>
                 <th>#</th><th>Usuario</th><th>Apertura</th><th>Cierre</th>
-                <th>Inicial</th><th>Final</th><th>Ventas</th><th>Estado</th>
+                <th>Inicial</th><th>Final</th><th>Esperado</th><th>Diferencia</th><th>Estado</th>
               </tr>
             </thead>
             <tbody>
-              {sessions.map((s, i) => (
-                <tr key={s.id}>
-                  <td>{i + 1}</td>
-                  <td>{s.user_name}</td>
-                  <td>{new Date(s.openingdate).toLocaleString()}</td>
-                  <td>{s.closingdate ? new Date(s.closingdate).toLocaleString() : '-'}</td>
-                  <td>${Number(s.openingbalance).toFixed(2)}</td>
-                  <td>{s.closingbalance ? `$${Number(s.closingbalance).toFixed(2)}` : '-'}</td>
-                  <td>{s.total_sales || 0}</td>
-                  <td><span className={`badge badge-${s.status === 'Open' ? 'success' : 'secondary'}`}>{s.status}</span></td>
-                </tr>
-              ))}
-              {sessions.length === 0 && <tr><td colSpan={8} className="empty">Sin sesiones</td></tr>}
+              {sessions.map((s, i) => {
+                const expected = Number(s.openingAmount) + Number(s.expectedAmount || 0);
+                const diff = s.closingAmount != null ? Number(s.closingAmount) - expected : 0;
+                return (
+                  <tr key={s.id}>
+                    <td>{i + 1}</td>
+                    <td>{s.userName}</td>
+                    <td>{new Date(s.openedAt).toLocaleString()}</td>
+                    <td>{s.closedAt ? new Date(s.closedAt).toLocaleString() : '-'}</td>
+                    <td>${Number(s.openingAmount).toFixed(2)}</td>
+                    <td>{s.closingAmount != null ? `$${Number(s.closingAmount).toFixed(2)}` : '-'}</td>
+                    <td>${expected.toFixed(2)}</td>
+                    <td>{s.closingAmount != null ? `$${diff.toFixed(2)}` : '-'}</td>
+                    <td><span className={`badge badge-${s.status === 'Open' ? 'success' : 'secondary'}`}>{s.status}</span></td>
+                  </tr>
+                );
+              })}
+              {sessions.length === 0 && <tr><td colSpan={9} className="empty">Sin sesiones</td></tr>}
             </tbody>
           </table>
         </div>
@@ -127,7 +164,7 @@ export default function CashRegister() {
             <div className="form-group">
               <label>Monto Inicial *</label>
               <input type="number" step="0.01" value={openingBalance}
-                onChange={e => setOpeningBalance(parseFloat(e.target.value) || 0)} autoFocus />
+                onChange={e => setOpeningBalance(e.target.value)} placeholder="0.00" autoFocus />
             </div>
             <div className="modal-actions">
               <button className="btn-secondary" onClick={() => setShowOpenModal(false)}>Cancelar</button>
@@ -142,14 +179,22 @@ export default function CashRegister() {
           <div className="modal" onClick={e => e.stopPropagation()}>
             <h2>Cerrar Caja</h2>
             {error && <div className="error-message">{error}</div>}
+            {sessionSales && (
+              <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f0fdf4', borderRadius: 6, border: '1px solid #bbf7d0' }}>
+                <p><strong>Efectivo Esperado: ${sessionSales.expected.toFixed(2)}</strong></p>
+                <p style={{ fontSize: '0.85rem', color: '#666' }}>
+                  ({sessionSales.total_sales} ventas · ${sessionSales.total_cash.toFixed(2)} efectivo + ${Number(activeSession?.openingAmount || 0).toFixed(2)} inicial)
+                </p>
+              </div>
+            )}
             <div className="form-group">
               <label>Monto Final *</label>
-              <input type="number" step="0.01" value={closingData.closingbalance}
-                onChange={e => setClosingData({...closingData, closingbalance: parseFloat(e.target.value) || 0})} autoFocus />
+              <input type="number" step="0.01" value={closingData.closingAmount}
+                onChange={e => setClosingData({...closingData, closingAmount: e.target.value})} placeholder="0.00" autoFocus />
             </div>
             <div className="form-group">
               <label>Notas</label>
-              <textarea value={closingData.notes} onChange={e => setClosingData({...closingData, notes: e.target.value})} />
+              <textarea value={closingData.closingNotes} onChange={e => setClosingData({...closingData, closingNotes: e.target.value})} />
             </div>
             <div className="modal-actions">
               <button className="btn-secondary" onClick={() => setShowCloseModal(false)}>Cancelar</button>

@@ -21,7 +21,7 @@ public class FacturaService
     {
         return await _context.Facturas
             .Include(f => f.Sale)
-            .Include(f => f.User)
+            .Include(f => f.CreatedByUser)
             .Select(f => new FacturaDTO
             {
                 Id = f.Id,
@@ -43,7 +43,7 @@ public class FacturaService
     {
         return await _context.Facturas
             .Include(f => f.Sale)
-            .Include(f => f.User)
+            .Include(f => f.CreatedByUser)
             .Where(f => f.Id == id)
             .Select(f => new FacturaDTO
             {
@@ -65,7 +65,7 @@ public class FacturaService
     public async Task<FacturaDTO?> CreateFacturaAsync(FacturarRequest request, int userId)
     {
         var sale = await _context.Sales
-            .Include(s => s.Items)
+            .Include(s => s.SaleItems)
             .Include(s => s.Customer)
             .FirstOrDefaultAsync(s => s.Id == request.SaleId);
         if (sale == null) return null;
@@ -73,7 +73,7 @@ public class FacturaService
         var entity = new Factura
         {
             SaleId = request.SaleId,
-            UserId = userId,
+            CreatedByUserId = userId,
             CustomerId = sale.CustomerId,
             Folio = $"F{System.DateTime.UtcNow:yyyyMMddHHmmss}",
             Subtotal = sale.Subtotal,

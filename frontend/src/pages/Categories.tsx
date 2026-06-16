@@ -62,14 +62,14 @@ export default function Categories() {
       <div className="table-container">
         <table className="table">
           <thead>
-            <tr><th>Nombre</th><th>Descripción</th><th>Activa</th><th>Acciones</th></tr>
+            <tr><th>Nombre</th><th>Descripción</th><th>Productos</th><th>Acciones</th></tr>
           </thead>
           <tbody>
             {categories.map(c => (
               <tr key={c.id}>
                 <td>{c.name}</td>
                 <td>{c.description || '-'}</td>
-                <td>{c.isactive ? 'Sí' : 'No'}</td>
+                <td>{c.productCount ?? 0}</td>
                 <td className="actions">
                   <button className="btn-sm" onClick={() => openEdit(c)}>Editar</button>
                   <button className="btn-sm btn-danger" onClick={() => handleDelete(c.id)}>Desactivar</button>

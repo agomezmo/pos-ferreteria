@@ -23,5 +23,7 @@ public class CustomerDTO
 
 	public bool IsCreditCustomer { get; set; }
 
+	public bool IsActive { get; set; }
+
 	public System.DateTime CreatedAt { get; set; }
 }

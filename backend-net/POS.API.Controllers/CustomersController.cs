@@ -93,6 +93,7 @@ public class CustomersController : ControllerBase
         var entity = new POS.API.Models.Customer
         {
             FullName = request.FullName,
+            DocumentType = request.DocumentType,
             DocumentNumber = request.DocumentNumber,
             Email = request.Email,
             Phone = request.Phone,

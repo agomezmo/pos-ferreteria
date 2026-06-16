@@ -40,6 +40,8 @@ public class Customer
 	[Column("is_credit_customer")]
 	public bool IsCreditCustomer { get; set; }
 
+	public bool IsActive { get; set; }
+
 	[StringLength(10)]
 	public string? RegimenFiscalId { get; set; }
 

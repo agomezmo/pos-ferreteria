@@ -54,6 +54,8 @@ public class Product
 
 	public bool IsActive { get; set; }
 
+	public System.DateTime? ExpiryDate { get; set; }
+
 	[Column("requires_tax")]
 	public bool RequiresTax { get; set; }
 

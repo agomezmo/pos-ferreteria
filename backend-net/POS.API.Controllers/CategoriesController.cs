@@ -27,8 +27,8 @@ public class CategoriesController : ControllerBase
         var result = await _context.Categories
             .Select(c => new CategoryProductCountDTO
             {
-                CategoryId = c.Id,
-                CategoryName = c.Name,
+			Id = c.Id,
+				Name = c.Name,
                 ProductCount = c.Products.Count
             })
             .ToListAsync();

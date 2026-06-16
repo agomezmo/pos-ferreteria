@@ -17,4 +17,6 @@ public class UpdateCustomerRequest
 	public decimal CreditLimit { get; set; }
 
 	public bool IsCreditCustomer { get; set; }
+
+	public bool? IsActive { get; set; }
 }

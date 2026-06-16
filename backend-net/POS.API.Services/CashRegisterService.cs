@@ -62,7 +62,7 @@ public class CashRegisterService
         {
             CashRegisterId = request.CashRegisterId,
             UserId = userId,
-            OpeningAmount = request.InitialAmount ?? 0,
+            OpeningAmount = request.OpeningAmount,
             OpenedAt = DateTime.UtcNow,
             Status = "Open",
             IsActive = true

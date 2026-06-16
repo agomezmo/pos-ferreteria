@@ -13,5 +13,7 @@ public class AlertDTO
 
 	public bool IsRead { get; set; }
 
+	public string? UserName { get; set; }
+
 	public System.DateTime CreatedAt { get; set; }
 }

@@ -29,11 +29,13 @@ public class SaleService
             UserId = userId,
             CashRegisterSessionId = request.CashRegisterSessionId,
             Subtotal = request.Items.Sum(i => i.Quantity * i.UnitPrice),
-            Discount = request.Discount ?? 0,
-            Tax = request.Tax ?? 0,
-            Total = request.Items.Sum(i => i.Quantity * i.UnitPrice) - (request.Discount ?? 0) + (request.Tax ?? 0),
+            Discount = request.Discount,
+            Tax = request.Tax,
+            Total = request.Items.Sum(i => i.Quantity * i.UnitPrice) - request.Discount + request.Tax,
             PaymentMethod = request.PaymentMethod,
-            Status = "completed",
+            PaymentStatus = "Completed",
+            SaleType = "Cash",
+            Status = "Completed",
             CreatedAt = DateTime.UtcNow
         };
         _context.Sales.Add(sale);
@@ -47,7 +49,7 @@ public class SaleService
                 ProductId = item.ProductId,
                 Quantity = item.Quantity,
                 UnitPrice = item.UnitPrice,
-                TotalPrice = item.Quantity * item.UnitPrice
+                Subtotal = item.Quantity * item.UnitPrice
             };
             _context.SaleItems.Add(saleItem);
 
@@ -67,7 +69,7 @@ public class SaleService
                     Amount = p.Amount,
                     PaymentMethod = p.PaymentMethod,
                     Reference = p.Reference,
-                    PaidAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow
                 });
             }
             await _context.SaveChangesAsync();
@@ -81,7 +83,7 @@ public class SaleService
         return await _context.Sales
             .Include(s => s.Customer)
             .Include(s => s.User)
-            .Include(s => s.Items).ThenInclude(si => si.Product)
+            .Include(s => s.SaleItems).ThenInclude(si => si.Product)
             .Include(s => s.Payments)
             .Where(s => s.Id == id)
             .Select(s => new SaleDTO
@@ -96,16 +98,16 @@ public class SaleService
                 Tax = s.Tax,
                 Total = s.Total,
                 PaymentMethod = s.PaymentMethod,
-                Status = s.Status,
+                PaymentStatus = s.Status,
                 CreatedAt = s.CreatedAt,
-                Items = s.Items.Select(si => new SaleItemDTO
+                Items = s.SaleItems.Select(si => new SaleItemDTO
                 {
                     Id = si.Id,
                     ProductId = si.ProductId,
                     ProductName = si.Product != null ? si.Product.Name : null,
                     Quantity = si.Quantity,
                     UnitPrice = si.UnitPrice,
-                    TotalPrice = si.TotalPrice
+                    Subtotal = si.Subtotal
                 }).ToList()
             })
             .FirstOrDefaultAsync();

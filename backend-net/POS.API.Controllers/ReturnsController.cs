@@ -27,7 +27,7 @@ public class ReturnsController : ControllerBase
         var returns = await _context.Returns
             .Include(r => r.Sale)
             .Include(r => r.User)
-            .Include(r => r.Items).ThenInclude(i => i.Product)
+            .Include(r => r.ReturnItems).ThenInclude(i => i.Product)
             .OrderByDescending(r => r.CreatedAt)
             .Select(r => new ReturnDTO
             {
@@ -37,14 +37,14 @@ public class ReturnsController : ControllerBase
                 Total = r.Total,
                 UserName = r.User != null ? r.User.FullName : null,
                 CreatedAt = r.CreatedAt,
-                Items = r.Items.Select(i => new ReturnItemDTO
+                Items = r.ReturnItems.Select(i => new ReturnItemDTO
                 {
                     Id = i.Id,
                     ProductId = i.ProductId,
                     ProductName = i.Product != null ? i.Product.Name : null,
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice,
-                    TotalPrice = i.TotalPrice
+                    Subtotal = i.Subtotal
                 }).ToList()
             })
             .ToListAsync();
@@ -64,7 +64,7 @@ public class ReturnsController : ControllerBase
             SaleId = request.SaleId,
             UserId = userId > 0 ? userId : null,
             Reason = request.Reason,
-            Total = request.Items.Sum(i => i.TotalPrice),
+            Total = request.Items.Sum(i => i.Quantity * i.UnitPrice),
             CreatedAt = System.DateTime.UtcNow
         };
         _context.Returns.Add(entity);
@@ -78,7 +78,7 @@ public class ReturnsController : ControllerBase
                 ProductId = item.ProductId,
                 Quantity = item.Quantity,
                 UnitPrice = item.UnitPrice,
-                TotalPrice = item.TotalPrice
+                Subtotal = item.Quantity * item.UnitPrice
             };
             _context.ReturnItems.Add(returnItem);
 

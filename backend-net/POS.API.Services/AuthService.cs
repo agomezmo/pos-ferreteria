@@ -38,7 +38,8 @@ public class AuthService
         _context.LoginLogs.Add(new LoginLog
         {
             UserId = user.Id,
-            LoginAt = DateTime.UtcNow,
+            Action = "Login",
+            CreatedAt = DateTime.UtcNow,
             IpAddress = ""
         });
         await _context.SaveChangesAsync();

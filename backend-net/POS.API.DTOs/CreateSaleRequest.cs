@@ -7,6 +7,8 @@ public class CreateSaleRequest
 
 	public decimal Discount { get; set; }
 
+	public decimal Tax { get; set; }
+
 	public string PaymentMethod { get; set; }
 
 	public string SaleType { get; set; }
@@ -16,4 +18,15 @@ public class CreateSaleRequest
 	public int? CashRegisterSessionId { get; set; }
 
 	public List<CreateSaleItemRequest> Items { get; set; }
+
+	public List<CreatePaymentRequest>? Payments { get; set; }
+}
+
+public class CreatePaymentRequest
+{
+	public decimal Amount { get; set; }
+
+	public string PaymentMethod { get; set; }
+
+	public string? Reference { get; set; }
 }

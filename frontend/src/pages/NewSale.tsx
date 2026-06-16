@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { productsApi, customersApi, salesApi, companyApi } from '../services/api';
+import { productsApi, customersApi, salesApi, companyApi, categoriesApi } from '../services/api';
 
 interface CartItem {
   productid: number;
@@ -69,6 +69,8 @@ export default function NewSale() {
   const [saleData, setSaleData] = useState<any>(null);
   const [companyData, setCompanyData] = useState<any>(null);
   const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const barcodeInput = useRef<HTMLInputElement>(null);
   const [barcode, setBarcode] = useState('');
@@ -85,24 +87,28 @@ export default function NewSale() {
       const raw = res.data.products || res.data || [];
       setAllProducts(raw.map(normalizeProduct));
     }).catch(() => {});
+    categoriesApi.getAll().then(res => {
+      setCategories(res.data || []);
+    }).catch(() => {});
     companyApi.get().then(res => setCompanyData(res.data)).catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (!search.trim()) {
-      setProducts(allProducts);
-      setShowResults(true);
-      return;
+    let filtered = allProducts;
+    if (selectedCategory) {
+      filtered = filtered.filter(p => p.categoryid === selectedCategory);
     }
-    const q = search.toLowerCase();
-    const filtered = allProducts.filter(p =>
-      p.name.toLowerCase().includes(q) ||
-      (p.code && p.code.toLowerCase().includes(q)) ||
-      (p.barcode && p.barcode.toLowerCase().includes(q))
-    );
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        (p.code && p.code.toLowerCase().includes(q)) ||
+        (p.barcode && p.barcode.toLowerCase().includes(q))
+      );
+    }
     setProducts(filtered);
     setShowResults(true);
-  }, [search, allProducts]);
+  }, [search, allProducts, selectedCategory]);
 
   const searchCustomers = async (q: string) => {
     if (!q.trim()) { setCustomerResults([]); return; }
@@ -353,6 +359,30 @@ export default function NewSale() {
               <button className="btn-primary" onClick={handleBarcode}>+</button>
             </div>
           </div>
+
+          {/* Categorías */}
+          {categories.length > 0 && (
+            <div className="category-menu-section">
+              <label>Categorías</label>
+              <div className="category-list">
+                <button
+                  className={`category-chip ${selectedCategory === null ? 'active' : ''}`}
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  Todas
+                </button>
+                {categories.map(c => (
+                  <button
+                    key={c.id}
+                    className={`category-chip ${selectedCategory === c.id ? 'active' : ''}`}
+                    onClick={() => setSelectedCategory(c.id)}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Buscador de productos */}
           <div className="product-search-section">

@@ -18,7 +18,9 @@ public class CashRegisterSession
 	public int UserId { get; set; }
 
 	[ForeignKey("UserId")]
-	public User User { get; set; }
+	public User? User { get; set; }
+
+	public bool IsActive { get; set; }
 
 	[Column(TypeName = "decimal(18,2)")]
 	public decimal OpeningAmount { get; set; }

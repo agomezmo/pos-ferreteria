@@ -44,6 +44,10 @@ public class Sale
 	[StringLength(20)]
 	public string PaymentStatus { get; set; }
 
+	[Required]
+	[StringLength(20)]
+	public string Status { get; set; }
+
 	[Column("sale_type")]
 	[StringLength(20)]
 	public string SaleType { get; set; }

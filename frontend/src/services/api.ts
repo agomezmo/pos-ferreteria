@@ -87,8 +87,8 @@ export const productsApi = {
 
 /* Categories */
 export const categoriesApi = {
-  getAll: () => api.get('/categories'),
-  getById: (id: number) => api.get(`/categories/${id}`),
+  getAll: () => api.get('/products/categories'),
+  getById: (id: number) => api.get(`/products/categories`),
   create: (data: any) => api.post('/categories', data),
   update: (id: number, data: any) => api.put(`/categories/${id}`, data),
   delete: (id: number) => api.delete(`/categories/${id}`),
@@ -123,9 +123,9 @@ export const salesApi = {
 export const cashRegisterApi = {
   getAll: () => api.get('/cashregister'),
   getSessions: (params?: any) => api.get('/cashregister/sessions', { params }),
-  openSession: (data: any) => api.post('/cashregister/open', data),
-  closeSession: (data: any) => api.post('/cashregister/close', data),
-  getActiveSession: () => api.get('/cashregister/active'),
+  openSession: (data: any) => api.post('/cashregister/sessions/open', data),
+  closeSession: (id: number, data: any) => api.post(`/cashregister/sessions/${id}/close`, data),
+  getCurrentSession: (cashRegisterId: number) => api.get(`/cashregister/sessions/current/${cashRegisterId}`),
 };
 
 /* Returns */

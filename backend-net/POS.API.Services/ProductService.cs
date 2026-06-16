@@ -110,6 +110,15 @@ public class ProductService
 
     public async Task<ProductDTO> CreateProductAsync(CreateProductRequest request)
     {
+        if (request.CategoryId <= 0)
+        {
+            var defaultCat = await _context.Categories
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.Id)
+                .FirstOrDefaultAsync();
+            request.CategoryId = defaultCat?.Id ?? 10;
+        }
+
         var entity = new Product
         {
             Code = request.Code,
@@ -144,7 +153,21 @@ public class ProductService
         if (request.Barcode != null) entity.Barcode = request.Barcode;
         if (request.Name != null) entity.Name = request.Name;
         if (request.Description != null) entity.Description = request.Description;
-        if (request.CategoryId.HasValue) entity.CategoryId = request.CategoryId.Value;
+        if (request.CategoryId.HasValue)
+        {
+            if (request.CategoryId.Value <= 0)
+            {
+                var defaultCat = await _context.Categories
+                    .Where(c => c.IsActive)
+                    .OrderBy(c => c.Id)
+                    .FirstOrDefaultAsync();
+                entity.CategoryId = defaultCat?.Id ?? 10;
+            }
+            else
+            {
+                entity.CategoryId = request.CategoryId.Value;
+            }
+        }
         if (request.SupplierId.HasValue) entity.SupplierId = request.SupplierId.Value;
         if (request.PurchasePrice.HasValue) entity.PurchasePrice = request.PurchasePrice.Value;
         if (request.SalePrice.HasValue) entity.SalePrice = request.SalePrice.Value;
@@ -178,7 +201,11 @@ public class ProductService
             .Select(c => new CategoryDTO
             {
                 Id = c.Id,
-                Name = c.Name
+                Name = c.Name,
+                Description = c.Description,
+                IsActive = c.IsActive,
+                ProductCount = c.Products.Count,
+                CreatedAt = c.CreatedAt
             })
             .ToListAsync();
     }

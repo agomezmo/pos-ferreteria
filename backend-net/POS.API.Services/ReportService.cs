@@ -71,7 +71,7 @@ public class ReportService
                 ProductCode = g.Key.Code,
                 CategoryName = g.Key.CategoryName,
                 TotalQuantity = (int)g.Sum(si => si.Quantity),
-                TotalRevenue = g.Sum(si => si.TotalPrice)
+                TotalRevenue = g.Sum(si => si.Subtotal)
             })
             .OrderByDescending(t => t.TotalQuantity)
             .Take(top)
