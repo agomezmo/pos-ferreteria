@@ -91,20 +91,37 @@ step_docker() {
     log "   Levantando servicios..."
     docker compose up -d db api frontend
 
-    # Esperar a que la API esté lista (acepta 200, 401, 404 como señal de vida)
-    log "   Esperando a que la API responda..."
+    # Esperar a que el health check de Docker pase
+    log "   Esperando a que la API esté saludable..."
     for i in $(seq 1 30); do
-        local status
-        status=$(curl -so /dev/null -w "%{http_code}" http://localhost:5002/api/auth/login 2>/dev/null || echo "000")
-        if [ "$status" != "000" ]; then
-            ok "API respondiendo en http://localhost:5002 (HTTP $status)"
+        local health
+        health=$(docker inspect --format='{{.State.Health.Status}}' pos_ferreteria_api 2>/dev/null || echo "starting")
+        if [ "$health" = "healthy" ]; then
+            ok "API saludable (health check)"
             break
         fi
         if [ "$i" -eq 30 ]; then
-            fail "La API no respondió después de 30 segundos. Revisa los logs con: docker compose logs api"
+            warn "Health check no pasó en 30s. Verificando respuesta HTTP..."
+            # Fallback: esperar respuesta HTTP
+            for j in $(seq 1 15); do
+                local status
+                status=$(curl -so /dev/null -w "%{http_code}" http://localhost:5002/api/auth/login -X POST \
+                    -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123"}' 2>/dev/null || echo "000")
+                if [ "$status" != "000" ]; then
+                    ok "API respondiendo en http://localhost:5002 (HTTP $status)"
+                    break
+                fi
+                if [ "$j" -eq 15 ]; then
+                    fail "La API no respondió después de reintentos. Revisa logs: docker compose logs api"
+                fi
+                sleep 2
+            done
         fi
         sleep 2
     done
+
+    # Pequeña pausa de estabilidad antes de las pruebas
+    sleep 2
 
     # Cargar datos si es necesario
     if [ "$NEEDS_SEED" = true ]; then
@@ -195,54 +212,38 @@ step_verify() {
 step_commit() {
     log "📤 Preparando commit..."
 
-    # Solo incluir los archivos relevantes (no los .bak)
     cd "$PROJECT_DIR"
 
-    # Crear .gitignore si no existe (para excluir .bak)
-    if [ ! -f .gitignore ]; then
-        echo "*.bak" > .gitignore
-        echo "*.bak/" >> .gitignore
-        echo "node_modules/" >> .gitignore
-        echo "bin/" >> .gitignore
-        echo "obj/" >> .gitignore
-        echo "dist/" >> .gitignore
-        echo "frontend/dist/" >> .gitignore
-        git add .gitignore
-    fi
-
-    # Agregar archivos modificados (excluyendo .bak)
-    git add \
-        backend-net/POS.API.Services/AuthService.cs \
-        backend-net/POS.API.Services/ProductService.cs \
-        frontend/src/pages/NewSale.tsx \
-        frontend/src/index.css \
-        2>/dev/null || true
-
-    # Mostrar qué se va a commitear
+    # Mostrar cambios detectados
     echo ""
-    echo "  Archivos a commitear:"
-    git diff --cached --name-only | sed 's/^/    • /'
+    echo "  Archivos modificados / sin seguimiento:"
+    git diff --name-only | sed 's/^/    • /'
+    git ls-files --others --exclude-standard | sed 's/^/    (nuevo) • /'
 
-    if git diff --cached --quiet; then
-        warn "No hay cambios nuevos para commitear (los nuestros ya fueron incluídos en cambios previos)"
+    # Preguntar mensaje de commit
+    echo ""
+    read -r -p "  Mensaje de commit (Enter para saltar): " msg
+    if [ -z "$msg" ]; then
+        warn "Commit saltado"
         return
     fi
 
-    # Commit
-    git commit -m "fix: agrega menú de categorías en POS y corrige error de login
+    # Agregar todo (excepto .bak, node_modules, etc.)
+    git add -A
 
-- Agrega filtro por categoría en la pantalla de Nueva Venta (NewSale.tsx)
-- Corrige AuthService.LoginAsync para incluir Action='Login' en LoginLog
-- Completa ProductService.GetCategoriesAsync con todos los campos del DTO
-- Agrega categoría por defecto en creación/actualización de productos
-- Agrega estilos CSS para el menú de categorías"
+    if git diff --cached --quiet; then
+        warn "No hay cambios para commitear"
+        return
+    fi
+
+    git commit -m "$msg"
 
     # Push
     log "   Subiendo cambios a origin/main..."
     if git push origin main 2>&1; then
         ok "Cambios subidos exitosamente a origin/main"
     else
-        warn "Push falló. Puede que necesites: git pull --rebase origin main y luego intentar de nuevo"
+        warn "Push falló. Haz git pull --rebase origin main e intenta de nuevo"
     fi
 }
 

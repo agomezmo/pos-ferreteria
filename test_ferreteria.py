@@ -4,10 +4,11 @@ Suite de Pruebas Integral — POS Ferretería
 API: http://localhost:5002/api
 """
 
-import sys, json, random, string, os
+import sys, json, random, string, os, time
 from datetime import datetime, timedelta
 from urllib.request import Request, urlopen, HTTPError
 from urllib.parse import urlencode
+from urllib.error import URLError
 
 BASE = "http://localhost:5002/api"
 PASS = "✅"
@@ -29,24 +30,34 @@ def rand_email(name):
 def rand_id(prefix, length=6):
     return prefix + ''.join(random.choices(string.digits, k=length))
 
-# ── HTTP helper ──
-def api(method, path, data=None, token=None):
-    url = f"{BASE}{path}"
-    headers = {"Content-Type": "application/json"}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    body = json.dumps(data).encode() if data else None
-    req = Request(url, data=body, headers=headers, method=method)
-    try:
-        with urlopen(req, timeout=15) as resp:
-            raw = resp.read().decode()
-            return json.loads(raw) if raw else {}
-    except HTTPError as e:
-        raw = e.read().decode()
-        try: return json.loads(raw)
-        except: return {"error": raw, "status": e.code}
-    except Exception as e:
-        return {"error": str(e)}
+# ── HTTP helper con reintentos ──
+def api(method, path, data=None, token=None, retries=3):
+    last_error = None
+    for attempt in range(1, retries + 1):
+        try:
+            url = f"{BASE}{path}"
+            headers = {"Content-Type": "application/json"}
+            if token:
+                headers["Authorization"] = f"Bearer {token}"
+            body = json.dumps(data).encode() if data else None
+            req = Request(url, data=body, headers=headers, method=method)
+            with urlopen(req, timeout=15) as resp:
+                raw = resp.read().decode()
+                return json.loads(raw) if raw else {}
+        except HTTPError as e:
+            raw = e.read().decode()
+            try: return json.loads(raw)
+            except: return {"error": raw, "status": e.code}
+        except (URLError, ConnectionResetError, ConnectionError, TimeoutError) as e:
+            last_error = str(e)
+            if attempt < retries:
+                wait = attempt * 2
+                print(f"    ⏳ Reintentando ({attempt}/{retries}) en {wait}s... ({e})")
+                time.sleep(wait)
+            continue
+        except Exception as e:
+            return {"error": str(e)}
+    return {"error": f"Conexión fallida tras {retries} intentos: {last_error}"}
 
 # ── Test runner ──
 results = []
@@ -59,6 +70,23 @@ def test(module, name, fn):
     except Exception as e:
         results.append((module, name, False))
         print(f"  {FAIL} {name}\n    → EXCEPCIÓN: {e}")
+
+# ── Health check con espera ──
+def wait_for_api(timeout=60):
+    """Espera hasta que la API responda o se alcance el timeout."""
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            url = f"{BASE}/auth/login"
+            data = json.dumps({"username": "admin", "password": "admin123"}).encode()
+            req = Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
+            with urlopen(req, timeout=5) as resp:
+                if resp.status == 200:
+                    return True
+        except Exception:
+            pass
+        time.sleep(2)
+    return False
 
 # ── Global state ──
 token = None
@@ -365,7 +393,15 @@ if __name__ == "__main__":
     print(f"  API: {BASE}")
     print("#" * 60)
 
-    # Login first
+    # Esperar a que la API esté disponible
+    print("\n  ⏳ Verificando disponibilidad de la API...")
+    if not wait_for_api():
+        print(f"  {FAIL} La API no respondió después de 60 segundos.")
+        sys.exit(1)
+    print(f"  {PASS} API disponible")
+    print()
+
+    # Login first (con reintentos)
     test_auth()
     if not token:
         print(f"\n  {FAIL} No se pudo obtener token. Abortando.")
