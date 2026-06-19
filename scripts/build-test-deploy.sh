@@ -141,7 +141,42 @@ step_docker() {
     docker compose ps
 }
 
-# ── 4. Ejecutar pruebas de módulos ──
+# ── 4. Reconstruir y levantar chatbot ──
+step_chatbot() {
+    log "🤖 Reconstruyendo chatbot..."
+    local CHATBOT_DIR="$PROJECT_DIR/../chatbot"
+
+    if [ ! -f "$CHATBOT_DIR/docker-compose.yml" ]; then
+        warn "Chatbot no encontrado en $CHATBOT_DIR. Despliégalo manualmente."
+        return
+    fi
+
+    cd "$CHATBOT_DIR"
+
+    # Reconstruir imagen del backend con --no-cache para tomar cambios del Dockerfile
+    log "   Reconstruyendo imagen chatbot-backend..."
+    docker compose build chatbot-backend --no-cache 2>&1 | tail -5
+
+    # Levantar servicios
+    log "   Levantando servicios del chatbot..."
+    docker compose up -d chatbot-backend 2>/dev/null || true
+
+    # Esperar a que responda
+    log "   Esperando a que el chatbot responda..."
+    for i in $(seq 1 20); do
+        if curl -sf http://localhost:3090/api/health > /dev/null 2>&1; then
+            ok "Chatbot backend respondiendo en http://localhost:3090"
+            cd "$PROJECT_DIR"
+            return
+        fi
+        sleep 2
+    done
+
+    warn "Chatbot backend no respondió después de 40s. Verifica: cd ~/proyectos/chatbot && docker compose logs"
+    cd "$PROJECT_DIR"
+}
+
+# ── 5. Ejecutar pruebas de módulos ──
 step_tests() {
     log "🧪 Ejecutando suite de pruebas..."
     cd "$PROJECT_DIR"
@@ -264,6 +299,7 @@ while [[ $# -gt 0 ]]; do
         --backend)    RUN_ALL=false; RUN_STEPS="$RUN_STEPS backend" ;;
         --frontend)   RUN_ALL=false; RUN_STEPS="$RUN_STEPS frontend" ;;
         --docker)     RUN_ALL=false; RUN_STEPS="$RUN_STEPS docker" ;;
+        --chatbot)    RUN_ALL=false; RUN_STEPS="$RUN_STEPS chatbot" ;;
         --tests)      RUN_ALL=false; RUN_STEPS="$RUN_STEPS tests" ;;
         --verify)     RUN_ALL=false; RUN_STEPS="$RUN_STEPS verify" ;;
         --commit)     RUN_ALL=false; RUN_STEPS="$RUN_STEPS commit" ;;
@@ -274,6 +310,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --backend    Compilar backend .NET"
             echo "  --frontend   Compilar frontend"
             echo "  --docker     Reconstruir y levantar contenedores"
+            echo "  --chatbot    Reconstruir y levantar chatbot"
             echo "  --tests      Ejecutar suite de pruebas"
             echo "  --verify     Verificar endpoints"
             echo "  --commit     Commit y push"
@@ -295,6 +332,7 @@ if [ "$RUN_ALL" = true ]; then
     step_backend
     step_frontend
     step_docker
+    step_chatbot
     step_tests
     step_verify
     step_commit
@@ -304,6 +342,7 @@ else
             backend)  step_backend ;;
             frontend) step_frontend ;;
             docker)   step_docker ;;
+            chatbot)  step_chatbot ;;
             tests)    step_tests ;;
             verify)   step_verify ;;
             commit)   step_commit ;;
